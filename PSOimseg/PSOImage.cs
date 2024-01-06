@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PSOimseg
 {
-    internal class Program
+    internal class PSOImage
     {
 
         //keeping the point more generic for more dimensions
@@ -109,13 +108,16 @@ namespace PSOimseg
             return (Dmax(centroids, clusters) + QuantizationError(centroids, clusters)) / Dmin(centroids);
         }
 
-        double ComputeFitnessForGivenParticle(Particle particle, Bitmap image)
+        /// <summary>
+        /// Get a list of clusters from given centroids and image
+        /// </summary>
+        List<List<Point>> GetClusters(Bitmap image, List<Point> centroids)
         {
-            //clusterCount x pointsInCluster, holds the associated points to a cluster of a particle
-            var particleClusters = new List<List<Point>>();
+            //clusterCount x pointsInCluster, holds the associated points to a cluster
+            var clusters = new List<List<Point>>();
             for (int i = 0; i < clustersCount; ++i)
             {
-                particleClusters.Add(new List<Point>());
+                clusters.Add(new List<Point>());
             }
 
             //assign each pixel to a cluster
@@ -127,14 +129,22 @@ namespace PSOimseg
                     var pixelAsVec = new double[] { x, y, pixelValue.R, pixelValue.G, pixelValue.B };
 
                     //find the closest centroid to pixel
-                    int idk = particle.centroids
+                    int idk = centroids
                         .Select((centroid, index) => (id: index, distance: EuclidianDistance(pixelAsVec, centroid.vec)))
                         .Aggregate((min, current) => min.distance < current.distance ? min : current).id;
 
                     //assign pixel to particle's closest cluster
-                    particleClusters[idk].Add(new Point { vec = pixelAsVec });
+                    clusters[idk].Add(new Point { vec = pixelAsVec });
                 }
             }
+            return clusters;
+        }
+
+
+        double ComputeFitnessForGivenParticle(Particle particle, Bitmap image)
+        {
+            //clusterCount x pointsInCluster, holds the associated points to a cluster of a particle
+            var particleClusters = GetClusters(image, particle.centroids);
 
             return FitnessFunction(particle.centroids, particleClusters);
         }
@@ -208,20 +218,41 @@ namespace PSOimseg
                 }
             }
 
+
             //solution is gbest
             displayClusters(image, gbest.centroids);
         }
 
-        void displayClusters(Bitmap image, List<Point> clusters)
+        void displayClusters(Bitmap image, List<Point> centroids)
         {
+            var clusteredImage = new Bitmap(image.Width, image.Height);
+
+            var clusters = GetClusters(image, centroids);
+
+            foreach (var cluster in clusters)
+            {
+                foreach (var point in cluster)
+                {
+                    clusteredImage.SetPixel(
+                        (int)point.vec.ElementAt(0),
+                        (int)point.vec.ElementAt(1),
+                        Color.FromArgb(
+                            (int)point.vec.ElementAt(2),
+                            (int)point.vec.ElementAt(3),
+                            (int)point.vec.ElementAt(4)
+                            )
+                        );
+                }
+            }
+
 
         }
 
         static void Main(string[] args)
         {
 
-            string imagePath = "";
-            Bitmap image = new Bitmap(imagePath);
+/*            string imagePath = "";
+            Bitmap image = new Bitmap(imagePath);*/
         }
     }
 }
