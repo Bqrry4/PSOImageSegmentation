@@ -9,18 +9,17 @@ namespace KMeans
     /// </summary>
     public class Cluster
     {
-
-        static List<int> s_OccupuedCentroidPositions = new List<int>(); // This is to keep track of which centroid positions are 
+        private static readonly List<int> OccupiedCentroidPositions = new List<int>(); // This is to keep track of which centroid positions are 
                                                                         // already occupied during random placement
 
         /// <summary>
-        /// Clear chaced centroid indices
+        /// Clear cached centroid indices
         /// </summary>
         public static void ResetCache()
         {
-            s_OccupuedCentroidPositions.Clear();
+            OccupiedCentroidPositions.Clear();
         }
-        private DataVec m_LastCentroid;
+        private DataVec _mLastCentroid;
 
         /// <summary>
         /// Centre point of a cluster
@@ -40,7 +39,7 @@ namespace KMeans
         }
 
         /// <summary>
-        /// Clears references to datapoints used for centroid recalculation
+        /// Clears references to data points used for centroid recalculation
         /// </summary>
         public void ClearData()
         {
@@ -48,14 +47,14 @@ namespace KMeans
         }
 
         /// <summary>
-        /// Places centrid at the position of a point randomly selected from the data.  
+        /// Places centroid at the position of a point randomly selected from the data.  
         /// </summary>
         /// <param name="allData"></param>
         public void Initialize(DataVec[] allData)
         {
-            int index = 0;
-            int cnt = 0;
-            Random rnd = new Random();
+            int index;
+            var cnt = 0;
+            var rnd = new Random();
             do
             {
                 cnt++;
@@ -66,11 +65,11 @@ namespace KMeans
 
                 index = rnd.Next(allData.Length);
 
-            } while (s_OccupuedCentroidPositions.Contains(index));
+            } while (OccupiedCentroidPositions.Contains(index));
 
             Centroid = DataVec.DeepCopy(allData[index]);
-            s_OccupuedCentroidPositions.Add(index);
-            m_LastCentroid = DataVec.DeepCopy(Centroid);
+            OccupiedCentroidPositions.Add(index);
+            _mLastCentroid = DataVec.DeepCopy(Centroid);
 
         }
 
@@ -85,28 +84,28 @@ namespace KMeans
             {
                 return 0;
             }
-            double[] mean = new double[Centroid.Components.Length];
-            for (int i = 0; i < mean.Length; ++i)
+            var mean = new double[Centroid.Components.Length];
+            for (var i = 0; i < mean.Length; ++i)
             {
-                for (int pI = 0; pI < Points.Count; ++pI)
+                foreach (var dataPoint in Points)
                 {
-                    mean[i] += Points[pI].Components[i];
+                    mean[i] += dataPoint.Components[i];
                 }
-                mean[i] /= Points.Count;
 
+                mean[i] /= Points.Count;
             }
-            m_LastCentroid = DataVec.DeepCopy(Centroid);
+            _mLastCentroid = DataVec.DeepCopy(Centroid);
             Centroid = new DataVec(mean);
-            return Centroid.GetDistance(m_LastCentroid);
+            return Centroid.GetDistance(_mLastCentroid);
         }
 
         /// <summary>
         /// Dave results as CSV file
         /// </summary>
         /// <param name="path"></param>
-        public void SaveAsCSV(string path)
+        public void SaveAsCsv(string path)
         {
-            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(path))
+            using (var writer = new System.IO.StreamWriter(path))
             {
                 foreach (var point in Points)
                 {

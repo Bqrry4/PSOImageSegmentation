@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.Linq;
 
 namespace KMeans
 {
@@ -19,17 +21,17 @@ namespace KMeans
         /// </summary>
         /// <param name="source">DataVec object to copy</param>
         /// <returns></returns>
-        static public DataVec DeepCopy(DataVec source)
+        public static DataVec DeepCopy(DataVec source)
         {
-            double[] data = new double[source.Components.Length];
+            var data = new double[source.Components.Length];
             Array.Copy(source.Components, data, source.Components.Length);
-            DataVec ret = new DataVec(data);
+            var ret = new DataVec(data);
             return ret;
         }
 
         public DataVec()
         {
-            Components = new double[0];
+            Components = Array.Empty<double>();
         }
 
         public DataVec(double[] data)
@@ -53,20 +55,20 @@ namespace KMeans
             {
                 throw new Exception("Dimension mismatch");
             }
-            double[] diff = new double[Components.Length];
-            for (int i = 0; i < diff.Length; ++i)
+            var diff = new double[Components.Length];
+            for (var i = 0; i < diff.Length; ++i)
             {
                 diff[i] = other.Components[i] - Components[i];
             }
 
-            return CalculateMagintude(diff);
+            return CalculateMagnitude(diff);
         }
         /// <summary>
         /// Print data point. For Debug.
         /// </summary>
         public void Print()
         {
-            Console.WriteLine("E: " + this.ToString());
+            Console.WriteLine("E: " + ToString());
         }
 
         /// <summary>
@@ -75,40 +77,32 @@ namespace KMeans
         /// <returns></returns>
         public override string ToString()
         {
-            string str = "";
+            var str = Components.Aggregate("", (current, t) => current + (t + ","));
 
-            for (int i = 0; i < Components.Length; ++i)
-            {
-                str += Components[i].ToString() + ",";
-            }
             return str.Substring(0, str.Length - 1);
         }
 
         /// <summary>
-        /// Obtain string representation of component values, separated by spaces and alligned.
+        /// Obtain string representation of component values, separated by spaces and aligned.
         /// </summary>
         /// <returns></returns>
-        public string ToStringFormated()
+        public string ToStringFormatted()
         {
-            string str = "";
+            var str = "";
             const int digits = 25;
-            for (int i = 0; i < Components.Length; ++i)
+            foreach (var t in Components)
             {
-                int ln = Components[i].ToString().Length;
-                str += Components[i].ToString() + new string(' ', digits - ln);
+                var ln = t.ToString(CultureInfo.InvariantCulture).Length;
+                str += t + new string(' ', digits - ln);
             }
             return str.Substring(0, str.Length - 1);
         }
 
 
-        protected double CalculateMagintude(double[] data)
+        protected double CalculateMagnitude(double[] data)
         {
-            double sumSquared = 0;
+            var sumSquared = data.Sum(t => (t * t));
 
-            for (int i = 0; i < data.Length; ++i)
-            {
-                sumSquared += (data[i] * data[i]);
-            }
             return Math.Sqrt(sumSquared);
         }
     }

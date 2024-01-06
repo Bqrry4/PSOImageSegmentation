@@ -1,46 +1,48 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 
 namespace KMeans
 {
-    public enum KMSState
+    public enum KmsState
     {
-        OK = 0, PointsArrayNull = 1, DataPointsArayEmpty = 2, MoreCategoriesThanPoints = 3,
-        NullEntryInDataPoints = 4, DimensionMismatch = 5
+        Ok = 0,
+        PointsArrayNull = 1,
+        DataPointsArrayEmpty = 2,
+        MoreCategoriesThanPoints = 3,
+        NullEntryInDataPoints = 4,
+        DimensionMismatch = 5
     }
 
     public class KMeansClustering
     {
-
-        private readonly int MAX_ITERATIONS = 100;
-        private int m_K;
-        private DataVec[] p_DataPoints;
-        private Cluster[] m_Clusters;
+        private const int MaxIterations = 100;
+        private readonly DataVec[] _pDataPoints;
+        private readonly Cluster[] _mClusters;
 
         /// <summary>
-        /// Create instance of KMeansClustering clasifier.
+        /// Create instance of KMeansClustering classifier.
         /// </summary>
         /// <param name="points">All data points</param>
         /// <param name="k">Number of bins</param>
         public KMeansClustering(DataVec[] points, int k)
         {
-            KMSState state = CheckData(points, k);
-            if (state != KMSState.OK)
+            var state = CheckData(points, k);
+            if (state != KmsState.Ok)
             {
                 throw new Exception("Data check failed. Reason: " + state.ToString());
             }
+
             Cluster.ResetCache();
 
-            m_K = k;
-            p_DataPoints = points;
-            m_Clusters = new Cluster[m_K];
-            int dimensions = points[0].Components.Length;
-            for (int i = 0; i < m_K; ++i)
+            _pDataPoints = points;
+            _mClusters = new Cluster[k];
+            for (var i = 0; i < k; ++i)
             {
-                m_Clusters[i] = new Cluster();
-                m_Clusters[i].Initialize(points);
+                _mClusters[i] = new Cluster();
+                _mClusters[i].Initialize(points);
             }
-
         }
 
         /// <summary>
@@ -50,43 +52,41 @@ namespace KMeans
         /// <returns>Array of clusters, each containing centroid and a list of assigned data points.</returns>
         public Cluster[] Compute(double maxDiv = 0.0001d)
         {
-            int iterations = 0;
-            while (iterations < MAX_ITERATIONS)
+            var iterations = 0;
+            while (iterations < MaxIterations)
             {
                 iterations++;
                 //clear points in clusters
-                for (int iCluster = 0; iCluster < m_Clusters.Length; ++iCluster)
+                foreach (var cluster in _mClusters)
                 {
-                    m_Clusters[iCluster].ClearData();
+                    cluster.ClearData();
                 }
-                //reasing points in clusters
-                for (int iPoint = 0; iPoint < p_DataPoints.Length; ++iPoint)
-                {
-                    double dist = double.PositiveInfinity;
-                    int cluster = 0;
-                    for (int iCluster = 0; iCluster < m_Clusters.Length; ++iCluster)
-                    {
-                        double d = m_Clusters[iCluster].Centroid.GetDistance(p_DataPoints[iPoint]);
-                        if (d < dist)
-                        {
-                            dist = d;
-                            cluster = iCluster;
-                        }
-                    }
-                    m_Clusters[cluster].Points.Add(p_DataPoints[iPoint]);
 
-                }
-                // recalculate centriods
-                double distChanged = 0;
-                for (int iCluster = 0; iCluster < m_Clusters.Length; ++iCluster)
+                //reassign points in clusters
+                foreach (var dataPoint in _pDataPoints)
                 {
-                    distChanged += m_Clusters[iCluster].RecalculateCentroid();
+                    var dist = double.PositiveInfinity;
+                    var cluster = 0;
+                    for (var iCluster = 0; iCluster < _mClusters.Length; ++iCluster)
+                    {
+                        var d = _mClusters[iCluster].Centroid.GetDistance(dataPoint);
+                        if (!(d < dist)) continue;
+                        dist = d;
+                        cluster = iCluster;
+                    }
+
+                    _mClusters[cluster].Points.Add(dataPoint);
                 }
+
+                // recalculate centroids
+                var distChanged = _mClusters.Sum(t => t.RecalculateCentroid());
+
                 Console.WriteLine("Mean error = " + distChanged);
-                if (distChanged / m_Clusters.Length < maxDiv)
+                if (distChanged / _mClusters.Length < maxDiv)
                     break;
             }
-            return m_Clusters;
+
+            return _mClusters;
         }
 
         /// <summary>
@@ -95,30 +95,30 @@ namespace KMeans
         public void PrintClusters()
         {
             Console.WriteLine("Centroids" + new string(' ', 50) + "Members");
-            for (int i = 0; i < m_Clusters.Length; ++i)
+            foreach (var cluster in _mClusters)
             {
-                string ptTex = m_Clusters[i].Centroid.ToStringFormated();
-                int diff = 60 - ptTex.Length;
+                var ptTex = cluster.Centroid.ToStringFormatted();
+                var diff = 60 - ptTex.Length;
                 if (diff < 1) diff = 1;
                 ptTex += new string(' ', diff);
-                Console.WriteLine(ptTex + " " + m_Clusters[i].Points.Count.ToString());
+                Console.WriteLine(ptTex + " " + cluster.Points.Count.ToString());
             }
         }
 
-        private KMSState CheckData(DataVec[] points, int k)
+        private static KmsState CheckData(IReadOnlyList<DataVec> points, int k)
         {
-            if (points == null) return KMSState.PointsArrayNull;
-            if (points.Length < 1) return KMSState.DataPointsArayEmpty;
-            if (points.Length < k) return KMSState.MoreCategoriesThanPoints;
-            if (points[0] == null) return KMSState.NullEntryInDataPoints;
+            if (points == null) return KmsState.PointsArrayNull;
+            if (points.Count < 1) return KmsState.DataPointsArrayEmpty;
+            if (points.Count < k) return KmsState.MoreCategoriesThanPoints;
+            if (points[0] == null) return KmsState.NullEntryInDataPoints;
             int dimensions = points[0].Components.Length;
-            for (int i = 1; i < points.Length; ++i)
+            for (int i = 1; i < points.Count; ++i)
             {
-                if (points[i] == null) return KMSState.NullEntryInDataPoints;
-                if (points[i].Components.Length != dimensions) return KMSState.DimensionMismatch;
+                if (points[i] == null) return KmsState.NullEntryInDataPoints;
+                if (points[i].Components.Length != dimensions) return KmsState.DimensionMismatch;
             }
 
-            return KMSState.OK;
+            return KmsState.Ok;
         }
     }
 }

@@ -49,7 +49,6 @@
     <Compile Include="Cluster.cs" />
     <Compile Include="DataVec.cs" />
     <Compile Include="KMeansClustering.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

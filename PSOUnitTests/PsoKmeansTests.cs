@@ -9,7 +9,7 @@ using System.Linq;
 namespace PSOUnitTests
 {
     [TestClass]
-    public class UnitTest1
+    public class PsoKmeansTests
     {
         [TestMethod]
         public void TestMethod1()
@@ -44,12 +44,12 @@ namespace PSOUnitTests
             }
             //TODO: run PSO
 
-            var PSOScore = 0.0;
-            var KmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
+            var psoScore = 0.0;
+            var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
 
             //Assert
-            Assert.IsTrue(PSOScore <= KmeanScore,"PSO worse than Kmean");
-            Console.WriteLine($"KmeanScore: {KmeanScore}");
+            Assert.IsTrue(psoScore <= kmeanScore,"PSO worse than Kmean");
+            Console.WriteLine($"KmeanScore: {kmeanScore}");
         }
     }
 }
