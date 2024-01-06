@@ -132,7 +132,7 @@ namespace PSOImageSegmentation
             }
 
             //assign each pattern to a cluster
-            foreach(var point in dataset)
+            foreach (var point in dataset)
             {
                 //find the closest centroid to pattern
                 int idk = centroids
@@ -167,16 +167,17 @@ namespace PSOImageSegmentation
             byte[] data = new byte[size];
             System.Runtime.InteropServices.Marshal.Copy(bData.Scan0, data, 0, size);
 
-            var dataset = data.Select((x, i) => (Index: i, Value: x ))
+            var dataset = data.Select((x, i) => (Index: i, Value: x))
             .GroupBy(x => x.Index / depth)
-            .Select((value, index) => {
+            .Select((value, index) =>
+            {
                 //computing the in-matrix coords from index
                 var y = index / image.Width;
                 var x = index - image.Width * y;
                 var pixelAsVec = new List<double>() { x, y };
                 pixelAsVec.AddRange(value.Select(val => (double)val.Value));
                 return new Point { vec = pixelAsVec };
-                })
+            })
             .ToList();
 
             image.UnlockBits(bData);
@@ -190,29 +191,39 @@ namespace PSOImageSegmentation
             //foreach(var particle in particles)
             Parallel.ForEach(particles, particle =>
             {
-                //init centroids and its velocity of current particle
-                particle.centroids = new List<Point>();
-                particle.velocity = new List<Point>();
-                for (int j = 0; j < clustersCount; ++j)
+                do
                 {
-                    //append centroid
-                    particle.centroids.Add(new Point());
-                    //randomly set centroids within image values
-                    particle.centroids.ElementAt(j).vec = new double[] { rnd.Next(image.Width), rnd.Next(image.Height), rnd.Next(255), rnd.Next(255), rnd.Next(255), rnd.Next(255) };
+                    //init centroids and its velocity of current particle
+                    particle.centroids = new List<Point>();
+                    particle.velocity = new List<Point>();
+                    for (int j = 0; j < clustersCount; ++j)
+                    {
+                        //append centroid
+                        particle.centroids.Add(new Point());
+                        //randomly set centroids within image values
+                        particle.centroids.ElementAt(j).vec = new double[]
+                        {
+                            rnd.Next(image.Width), rnd.Next(image.Height), rnd.Next(255), rnd.Next(255), rnd.Next(255),
+                            rnd.Next(255)
+                        };
+
+                        //init velocity with 0 or random within a given interval
+                        particle.velocity.Add(new Point());
+                        particle.velocity.ElementAt(j).vec = new double[] { 0, 0, 0, 0, 0, 0 };
+                    }
+
                     //compute the initial cost of particle
                     particle.cost = ComputeFitnessForGivenParticle(particle, dataset);
-                    //init velocity with 0 or random within a given interval
-                    particle.velocity.Add(new Point());
-                    particle.velocity.ElementAt(j).vec = new double[] { 0, 0, 0, 0, 0, 0 };
-                    //pbest as copy of self
-                    particle.pbest = particle.Clone();
-                }
+                } while (Double.IsNaN(particle.cost) || Double.IsInfinity(particle.cost));
+
+                //pbest as copy of self
+                particle.pbest = particle.Clone();
             });
 
-            var gbest = particles.Aggregate((min, current) => min.cost < current.cost ? min : current).Clone();
+            var sbest = particles.Aggregate((min, current) => min.cost < current.cost ? min : current).Clone();
             for (int t = 0; t < tmax; t++)
             {
-                //mutex for parallel updating the gbest /and particlesStillMoving counter
+                //mutex for parallel updating the sbest /and particlesStillMoving counter
                 var mux = new Mutex();
                 //needed to check convergency
                 int particlesStillMoving = 0;
@@ -221,25 +232,26 @@ namespace PSOImageSegmentation
                 {
                     //foreach centroid
                     //compute velocity and move centroids
-                    for (int lol = 0; lol < clustersCount - 1; lol++) //WHY IS THERE A BUG?? HOOW ON EARTH
+                    for (int i = 0; i < clustersCount; i++) //WHY IS THERE A BUG?? HOOW ON EARTH
                     {
                         //the random component in velocity equation
                         double r1 = rnd.NextDouble();
                         double r2 = rnd.NextDouble();
 
+                        var index = i;
                         //update velocity
-                        particle.velocity[lol].vec = particle.velocity[lol].vec
+                        particle.velocity[index].vec = particle.velocity[index].vec
                             .Select((velocity, id) => w * velocity //weigth from previous velocity
-                                + c1 * r1 * (particle.pbest.centroids[lol].vec.ElementAt(id) - particle.centroids[lol].vec.ElementAt(id)) //cognitive component
-                                + c2 * r2 * (gbest.centroids[lol].vec.ElementAt(id) - particle.centroids[lol].vec.ElementAt(id)) //social component
-                            );
+                                + c1 * r1 * (particle.pbest.centroids[index].vec.ElementAt(id) - particle.centroids[index].vec.ElementAt(id)) //cognitive component
+                                + c2 * r2 * (sbest.centroids[index].vec.ElementAt(id) - particle.centroids[index].vec.ElementAt(id)) //social component
+                            ).ToArray();
                         //update centroids
-                        particle.centroids[lol].vec = particle.centroids[lol].vec
-                            .Select((point, id) => point + particle.velocity[lol].vec.ElementAt(id));
+                        particle.centroids[index].vec = particle.centroids[index].vec
+                            .Select((point, id) => point + particle.velocity[index].vec.ElementAt(id)).ToArray();
 
 
                         //check particles for convergence
-                        if(particle.velocity[lol].vec.Min() < 0.1)
+                        if (particle.velocity[index].vec.Min() < 0.1)
                         {
                             mux.WaitOne();
                             particlesStillMoving++;
@@ -254,27 +266,29 @@ namespace PSOImageSegmentation
                     {
                         //save a copy of current particle as pbest
                         particle.pbest = particle.Clone();
-                        //updating gbest
+                        //updating sbest
                         mux.WaitOne();
-                        if (particle.cost < gbest.cost)
+                        if (particle.cost < sbest.cost)
                         {
-                            gbest = particle.Clone();
+                            sbest = particle.Clone();
                         }
                         mux.ReleaseMutex();
                     }
-                });
+                }
+                );
 
+                //if the particles converged finish
                 if (particlesStillMoving == 0)
                 {
                     break;
                 }
             }
 
-            //solution is gbest
-            return clusterTheImage(image, dataset, gbest.centroids);
+            //solution is sbest
+            return ClusterTheImage(image, dataset, sbest.centroids);
         }
 
-        Bitmap clusterTheImage(Bitmap image, IEnumerable<Point> dataset, List<Point> centroids)
+        Bitmap ClusterTheImage(Bitmap image, IEnumerable<Point> dataset, List<Point> centroids)
         {
             var clusteredImage = new Bitmap(image.Width, image.Height);
 
