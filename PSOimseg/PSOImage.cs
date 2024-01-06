@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
+using System.Linq;
 
 namespace PSOimseg
 {
@@ -251,8 +251,8 @@ namespace PSOimseg
         static void Main(string[] args)
         {
 
-/*            string imagePath = "";
-            Bitmap image = new Bitmap(imagePath);*/
+            /*            string imagePath = "";
+                        Bitmap image = new Bitmap(imagePath);*/
         }
     }
 }

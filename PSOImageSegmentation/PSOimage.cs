@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace PSOImageSegmentation
@@ -11,7 +10,7 @@ namespace PSOImageSegmentation
     {
 
         //keeping the point more generic for more dimensions
-        class Point
+        public class Point
         {
             public IEnumerable<double> vec { get; set; }
         }
@@ -51,7 +50,7 @@ namespace PSOImageSegmentation
         private double c2 = 2.0;
 
 
-        double EuclidianDistance(IEnumerable<double> zp, IEnumerable<double> zw)
+        static double EuclidianDistance(IEnumerable<double> zp, IEnumerable<double> zw)
         {
             if (zp.Count() != zw.Count())
             {
@@ -68,8 +67,9 @@ namespace PSOImageSegmentation
         }
 
         //Compute quantization error for given centroids and the pixels associated to its clusters
-        double QuantizationError(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
+        static double QuantizationError(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
         {
+            var clustersCount = clusters.Count();
             double summ = 0;
             for (int k = 0; k < clustersCount; ++k)
             {
@@ -81,14 +81,14 @@ namespace PSOImageSegmentation
         }
 
         //maximum average Euclidean distance of centroids and patterns(pixels) associated to clusters
-        double Dmax(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
+        static double Dmax(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
         {
             return centroids
                 .Select((centroid, k) => clusters.ElementAt(k).Sum(point => EuclidianDistance(point.vec, centroid.vec)) / clusters.ElementAt(k).Count())
                 .Max();
         }
         //minimum Euclidean distance between any pair of centroids
-        double Dmin(IEnumerable<Point> centroids)
+        static double Dmin(IEnumerable<Point> centroids)
         {
             var distanceMin = Double.MaxValue;
             for (int i = 0; i < centroids.Count(); ++i)
@@ -105,7 +105,7 @@ namespace PSOImageSegmentation
         }
 
         //Minimisation of non parametric fitness function
-        double FitnessFunction(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
+        public static double FitnessFunction(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
         {
             return (Dmax(centroids, clusters) + QuantizationError(centroids, clusters)) / Dmin(centroids);
         }
@@ -160,10 +160,10 @@ namespace PSOImageSegmentation
             Random rnd = new Random();
 
 
-/*            Rectangle rect = new Rectangle(0, 0, image.Width, image.Height);
-            System.Drawing.Imaging.BitmapData bmpData =
-                image.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly,
-                image.PixelFormat);*/
+            /*            Rectangle rect = new Rectangle(0, 0, image.Width, image.Height);
+                        System.Drawing.Imaging.BitmapData bmpData =
+                            image.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                            image.PixelFormat);*/
 
             //init particles randomly
             Parallel.ForEach(particles, particle =>
@@ -203,8 +203,8 @@ namespace PSOImageSegmentation
                         //update velocity
                         particle.velocity[lol].vec = particle.velocity[lol].vec
                             .Select((velocity, id) => w * velocity //weigth from previous velocity
-                            + c1 * r1 * (particle.pbest.centroids[lol].vec.ElementAt(id) - particle.centroids[lol].vec.ElementAt(id)) //cognitive component
-                            + c2 * r2 * (gbest.centroids[lol].vec.ElementAt(id) - particle.centroids[lol].vec.ElementAt(id)) //social component
+                                + c1 * r1 * (particle.pbest.centroids[lol].vec.ElementAt(id) - particle.centroids[lol].vec.ElementAt(id)) //cognitive component
+                                + c2 * r2 * (gbest.centroids[lol].vec.ElementAt(id) - particle.centroids[lol].vec.ElementAt(id)) //social component
                             );
 
                         //update centroids
