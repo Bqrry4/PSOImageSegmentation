@@ -5,9 +5,9 @@ using System.Windows.Forms;
 
 namespace Interface
 {
-    public partial class Form1 : Form
+    public partial class PsoForm : Form
     {
-        public Form1()
+        public PsoForm()
         {
             InitializeComponent();
         }
@@ -16,7 +16,7 @@ namespace Interface
         {
             var pso = new PSOimage();
             var psoed = pso.runPSO(new Bitmap(Image.FromFile("./toji.jpg")));
-            pictureBox1.Image = psoed;
+            resultPictureBox.Image = psoed;
         }
     }
 }
