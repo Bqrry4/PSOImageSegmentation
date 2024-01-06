@@ -48,7 +48,7 @@ namespace PSOUnitTests
             var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
 
             //Assert
-            Assert.IsTrue(psoScore <= kmeanScore,"PSO worse than Kmean");
+            Assert.IsTrue(psoScore <= kmeanScore, "PSO worse than Kmean");
             Console.WriteLine($"KmeanScore: {kmeanScore}");
         }
     }

@@ -10,7 +10,7 @@ namespace KMeans
     public class Cluster
     {
         private static readonly List<int> OccupiedCentroidPositions = new List<int>(); // This is to keep track of which centroid positions are 
-                                                                        // already occupied during random placement
+                                                                                       // already occupied during random placement
 
         /// <summary>
         /// Clear cached centroid indices
