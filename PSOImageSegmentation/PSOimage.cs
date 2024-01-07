@@ -5,6 +5,8 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PSOImageSegmentation
 {
@@ -191,6 +193,7 @@ namespace PSOImageSegmentation
         //size of image to be processed, needed to reconstruct the ouptut clustered image
         private int _width;
         private int _height;
+        private PixelFormat _pixelFormat;
 
         //TODO: support for more images types, it works fine with jpg
         public void GenerateDataSetFromBitmap(Bitmap image)
@@ -218,6 +221,7 @@ namespace PSOImageSegmentation
 
             _width = bitmapData.Width;
             _height = bitmapData.Height;
+            _pixelFormat = bitmapData.PixelFormat;
             _pointDimensions = depth + 2; //color + position
             //updating the domain limits for position
             _domainLimits[0] = (0, _width - 1);
@@ -232,12 +236,12 @@ namespace PSOImageSegmentation
         }
 
         //PSO parameters
-        private int _clustersCount = 4;
+        private int _clustersCount = 12;
         //should be given when generating dataset
         private int _pointDimensions; //x,y,r,g,b,a
-        private int _particlesCount = 10;
+        private int _particlesCount = 50;
         //iterationCount
-        private int tmax = 20;
+        private int tmax = 50;
         //constants
         private double w = 0.73;
         private double c1 = 1.49;
@@ -258,6 +262,7 @@ namespace PSOImageSegmentation
             (0, 0), //g
             (0, 0), //b
             (255, 255), //a
+            //those are default values, the order for rgba can vary for image format
         };
 
         public (Bitmap image, double score) RunPSO()
@@ -270,7 +275,8 @@ namespace PSOImageSegmentation
             //init particles randomly
             Parallel.ForEach(particles, particle =>
             {
-                //regenerate particle if its cost was NaN or infinite, caused by spawn of 2 centroids very close to each other
+                //regenerate particle if its cost was NaN or infinite
+                //caused by spawn of 2 centroids very close to each other, can happen if image is very uniform (ex. white background)
                 do
                 {
                     //init centroids and its velocity of current particle
@@ -280,9 +286,14 @@ namespace PSOImageSegmentation
                     {
                         //append centroid
                         particle.centroids.Add(new Point());
-                        //randomly set centroids within domain values
+
+                        /*//randomly set centroids within domain values
                         particle.centroids.ElementAt(j).vec = Enumerable.Range(0, _pointDimensions)
-                            .Select(index => (double)rnd.Next(_domainLimits[index].min, _domainLimits[index].max)).ToArray();
+                            .Select(index => (double)rnd.Next(_domainLimits[index].min, _domainLimits[index].max)).ToArray();*/
+
+                        //randomly set centroids with points in dataset, runs showing it does converge better
+                        particle.centroids[j].vec = _dataSet.ElementAt(rnd.Next(0, _dataSet.Count())).vec
+                            .Select(x => x).ToArray(); //a copy of vec
 
                         //init velocity with 0 [or random within a given interval] -> won't do that for now
                         particle.velocity.Add(new Point());
@@ -338,7 +349,7 @@ namespace PSOImageSegmentation
 
 
                         //check particles for convergence
-                        if (particle.velocity[index].vec.Max() < 0.1)
+                        if (particle.velocity[index].vec.Select(Math.Abs).Max() < 0.1) //if velocities -> [-0.1; 0.1]
                         {
                             mux.WaitOne();
                             particlesStillMoving++;
@@ -376,31 +387,35 @@ namespace PSOImageSegmentation
 
         Bitmap ClusteredDatasetToImage(IEnumerable<Point> dataset, List<Point> centroids)
         {
-            var clusteredImage = new Bitmap(_width, _height);
 
             var clusters = GetClusters(dataset, centroids);
+
+
+            var clusteredImage = new Bitmap(_width, _height, _pixelFormat);
+
+            BitmapData bitmapData = clusteredImage.LockBits(new Rectangle(0, 0, clusteredImage.Width, clusteredImage.Height), ImageLockMode.ReadWrite, clusteredImage.PixelFormat);
+            int depth = Bitmap.GetPixelFormatSize(bitmapData.PixelFormat) / 8;
+            int size = depth * bitmapData.Height * bitmapData.Width;
+            //buffer for image
+            byte[] data = new byte[size];
 
             foreach (var (cluster, id) in clusters.Select((value, id) => (value, id)))
             {
                 foreach (var point in cluster)
                 {
-                    clusteredImage.SetPixel(
-                        (int)point.vec.ElementAt(0),
-                        (int)point.vec.ElementAt(1),
-                        _pointDimensions == 3 ?
-                        Color.FromArgb(
-                            (int)centroids[id].vec.ElementAt(2),
-                            (int)centroids[id].vec.ElementAt(2),
-                            (int)centroids[id].vec.ElementAt(2) 
-                        ) :
-                        Color.FromArgb(
-                            (int)centroids[id].vec.ElementAt(2),
-                            (int)centroids[id].vec.ElementAt(3),
-                            (int)centroids[id].vec.ElementAt(4) 
-                        )
-                    );
+                    var inArrayPosition = ((int)point.vec.ElementAt(1) * bitmapData.Width + (int)point.vec.ElementAt(0)) * depth; // (y * width + x) * depth
+
+                    for (int i = 0; i < depth; i++)
+                    {
+                        data[inArrayPosition + i] = (byte)centroids[id].vec.ElementAt(2 + i); //as first 2 points are the coords
+                    }
                 }
             }
+
+            //write buffer to image
+            System.Runtime.InteropServices.Marshal.Copy(data, 0, bitmapData.Scan0, data.Length);
+            clusteredImage.UnlockBits(bitmapData);
+
             return clusteredImage;
         }
 
