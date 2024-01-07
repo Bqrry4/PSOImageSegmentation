@@ -49,6 +49,7 @@
             this.resultPictureBox.Margin = new System.Windows.Forms.Padding(4);
             this.resultPictureBox.Name = "resultPictureBox";
             this.resultPictureBox.Size = new System.Drawing.Size(402, 285);
+            this.resultPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.resultPictureBox.TabIndex = 0;
             this.resultPictureBox.TabStop = false;
             // 
@@ -84,6 +85,7 @@
             this.initialPictureBox.Margin = new System.Windows.Forms.Padding(4);
             this.initialPictureBox.Name = "initialPictureBox";
             this.initialPictureBox.Size = new System.Drawing.Size(402, 285);
+            this.initialPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.initialPictureBox.TabIndex = 5;
             this.initialPictureBox.TabStop = false;
             // 

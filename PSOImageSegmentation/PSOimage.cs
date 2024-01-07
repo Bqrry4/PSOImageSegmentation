@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PSOImageSegmentation
 {
     public class PSOimage
     {
+        #region innerClasses
         /// <summary>
         /// Point vector in n space dimension.
         /// Delegates an enumerable to keep the code clearer
         /// </summary>
-        class Point
+        public class Point
         {
             //keeping the point more generic for more dimensions
             public IEnumerable<double> vec { get; set; }
@@ -46,7 +47,10 @@ namespace PSOImageSegmentation
             }
 
         }
+        
+        #endregion
 
+        #region fitnessFunctions
 
         static double EuclidianDistance(IEnumerable<double> zp, IEnumerable<double> zw)
         {
@@ -106,6 +110,44 @@ namespace PSOImageSegmentation
         public static double FitnessFunction(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
         {
             return (Dmax(centroids, clusters) + QuantizationError(centroids, clusters)) / Dmin(centroids);
+        }
+
+        #endregion
+
+        public static Bitmap MakeGrayscale3(Bitmap original)
+        {
+            //create a blank bitmap the same size as original
+            Bitmap newBitmap = new Bitmap(original.Width, original.Height);
+
+            //get a graphics object from the new image
+            using (Graphics g = Graphics.FromImage(newBitmap))
+            {
+
+                //create the grayscale ColorMatrix
+                ColorMatrix colorMatrix = new ColorMatrix(
+                    new float[][]
+                    {
+                        new float[] {.3f, .3f, .3f, 0, 0},
+                        new float[] {.59f, .59f, .59f, 0, 0},
+                        new float[] {.11f, .11f, .11f, 0, 0},
+                        new float[] {0, 0, 0, 1, 0},
+                        new float[] {0, 0, 0, 0, 1}
+                    });
+
+                //create some image attributes
+                using (ImageAttributes attributes = new ImageAttributes())
+                {
+
+                    //set the color matrix attribute
+                    attributes.SetColorMatrix(colorMatrix);
+
+                    //draw the original image on the new image
+                    //using the grayscale color matrix
+                    g.DrawImage(original, new Rectangle(0, 0, original.Width, original.Height),
+                        0, 0, original.Width, original.Height, GraphicsUnit.Pixel, attributes);
+                }
+            }
+            return newBitmap;
         }
 
         /// <summary>
@@ -181,6 +223,11 @@ namespace PSOImageSegmentation
             _domainLimits[0] = (0, _width - 1);
             _domainLimits[1] = (0, _height - 1);
 
+            for (var i = 0; i < depth; i++)
+            {
+                _domainLimits[i + 2] = (0, 255);
+            }
+
             image.UnlockBits(bitmapData);
         }
 
@@ -196,20 +243,24 @@ namespace PSOImageSegmentation
         private double c1 = 1.49;
         private double c2 = 2.0;
 
+        public PSOimage(int clustersCount)
+        {
+            _clustersCount = clustersCount;
+        }
+
         /// <summary>
         /// value limits for a rgba image, values should be updated when dataset is generated
         /// </summary>
-        private readonly List<(int min, int max)> _domainLimits = new List<(int, int)>
-        {
+        private readonly (int min, int max)[] _domainLimits = {
             (0, 0), //x
             (0, 0), //y
-            (0, 255), //r
-            (0, 255), //g
-            (0, 255), //b
+            (0, 0), //r
+            (0, 0), //g
+            (0, 0), //b
             (255, 255), //a
         };
 
-        public Bitmap RunPSO()
+        public (Bitmap image, double score) RunPSO()
         {
             //needed for the random factor
             Random rnd = new Random();
@@ -320,7 +371,7 @@ namespace PSOImageSegmentation
                 }
             }
             //solution is sbest
-            return ClusteredDatasetToImage(_dataSet, sbest.centroids);
+            return (ClusteredDatasetToImage(_dataSet, sbest.centroids), sbest.cost);
         }
 
         Bitmap ClusteredDatasetToImage(IEnumerable<Point> dataset, List<Point> centroids)
@@ -336,12 +387,18 @@ namespace PSOImageSegmentation
                     clusteredImage.SetPixel(
                         (int)point.vec.ElementAt(0),
                         (int)point.vec.ElementAt(1),
+                        _pointDimensions == 3 ?
+                        Color.FromArgb(
+                            (int)centroids[id].vec.ElementAt(2),
+                            (int)centroids[id].vec.ElementAt(2),
+                            (int)centroids[id].vec.ElementAt(2) 
+                        ) :
                         Color.FromArgb(
                             (int)centroids[id].vec.ElementAt(2),
                             (int)centroids[id].vec.ElementAt(3),
-                            (int)centroids[id].vec.ElementAt(4)
-                            )
-                        );
+                            (int)centroids[id].vec.ElementAt(4) 
+                        )
+                    );
                 }
             }
             return clusteredImage;

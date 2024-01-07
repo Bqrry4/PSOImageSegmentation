@@ -81,7 +81,7 @@ namespace KMeans
                 // recalculate centroids
                 var distChanged = _mClusters.Sum(t => t.RecalculateCentroid());
 
-                Console.WriteLine("Mean error = " + distChanged);
+                //Console.WriteLine("Mean error = " + distChanged);
                 if (distChanged / _mClusters.Length < maxDiv)
                     break;
             }
