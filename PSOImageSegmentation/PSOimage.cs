@@ -48,17 +48,6 @@ namespace PSOImageSegmentation
 
         }
 
-        //PSO parameters
-        private readonly int clustersCount = 7;
-        private int pointDimensions = 5; //x,y,r,g,b
-        private int particlesCount = 5;
-        //iterationCount
-        private int tmax = 20;
-        //constants
-        private double w = 0.73;
-        private double c1 = 2.0;
-        private double c2 = 2.0;
-
 
         static double EuclidianDistance(IEnumerable<double> zp, IEnumerable<double> zw)
         {
@@ -114,7 +103,7 @@ namespace PSOImageSegmentation
         }
 
         //Minimisation of non parametric fitness function
-        double FitnessFunction(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
+        static double FitnessFunction(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
         {
             return (Dmax(centroids, clusters) + QuantizationError(centroids, clusters)) / Dmin(centroids);
         }
@@ -155,71 +144,111 @@ namespace PSOImageSegmentation
             return FitnessFunction(particle.centroids, particleClusters);
         }
 
+        //associated dataset to the image
+        private List<Point> _dataSet;
+        //size of image to be processed, needed to reconstruct the ouptut clustered image
+        private int _width;
+        private int _height;
 
-
-        public Bitmap runPSO(Bitmap image)
+        //TODO: support for more images types, it works fine with jpg
+        public void GenerateDataSetFromBitmap(Bitmap image)
         {
-
-            //convert image to dataset !! MAKE IT A SETTER to free some memory
-            BitmapData bData = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, image.PixelFormat);
-            int depth = Bitmap.GetPixelFormatSize(bData.PixelFormat) / 8;
-            int size = depth * bData.Height * bData.Width;
+            //convert image to dataset
+            BitmapData bitmapData = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, image.PixelFormat);
+            int depth = Bitmap.GetPixelFormatSize(bitmapData.PixelFormat) / 8;
+            int size = depth * bitmapData.Height * bitmapData.Width;
+            //copy the internal data to a buffer
             byte[] data = new byte[size];
-            System.Runtime.InteropServices.Marshal.Copy(bData.Scan0, data, 0, size);
+            System.Runtime.InteropServices.Marshal.Copy(bitmapData.Scan0, data, 0, size);
 
-            var dataset = data.Select((x, i) => (Index: i, Value: x))
-            .GroupBy(x => x.Index / depth)
-            .Select((value, index) =>
-            {
-                //computing the in-matrix coords from index
-                var y = index / image.Width;
-                var x = index - image.Width * y;
-                var pixelAsVec = new List<double>() { x, y };
-                pixelAsVec.AddRange(value.Select(val => (double)val.Value));
-                return new Point { vec = pixelAsVec };
-            })
-            .ToList();
+            _dataSet = data.Select((x, i) => (Index: i, Value: x))
+                .GroupBy(x => x.Index / depth)
+                .Select((value, index) =>
+                {
+                    //computing the in-matrix coords from index
+                    var y = index / image.Width;
+                    var x = index - image.Width * y;
+                    var pixelAsVec = new List<double>() { x, y };
+                    pixelAsVec.AddRange(value.Select(val => (double)val.Value));
+                    return new Point { vec = pixelAsVec };
+                })
+                .ToList();
 
-            image.UnlockBits(bData);
+            _width = bitmapData.Width;
+            _height = bitmapData.Height;
+            _pointDimensions = depth + 2; //color + position
+            //updating the domain limits for position
+            _domainLimits[0] = (0, _width - 1);
+            _domainLimits[1] = (0, _height - 1);
 
+            image.UnlockBits(bitmapData);
+        }
+
+        //PSO parameters
+        private int _clustersCount = 4;
+        //should be given when generating dataset
+        private int _pointDimensions; //x,y,r,g,b,a
+        private int _particlesCount = 10;
+        //iterationCount
+        private int tmax = 20;
+        //constants
+        private double w = 0.73;
+        private double c1 = 1.49;
+        private double c2 = 2.0;
+
+        /// <summary>
+        /// value limits for a rgba image, values should be updated when dataset is generated
+        /// </summary>
+        private readonly List<(int min, int max)> _domainLimits = new List<(int, int)>
+        {
+            (0, 0), //x
+            (0, 0), //y
+            (0, 255), //r
+            (0, 255), //g
+            (0, 255), //b
+            (255, 255), //a
+        };
+
+        public Bitmap RunPSO()
+        {
             //needed for the random factor
             Random rnd = new Random();
-            //an array of particles as it count doesnt change throughout the algorithm
-            var particles = Enumerable.Range(0, particlesCount).Select(_ => new Particle()).ToArray();
+            //an array of particles as it count doesn't change throughout the algorithm
+            var particles = Enumerable.Range(0, _particlesCount).Select(_ => new Particle()).ToArray();
 
             //init particles randomly
-            //foreach(var particle in particles)
             Parallel.ForEach(particles, particle =>
             {
+                //regenerate particle if its cost was NaN or infinite, caused by spawn of 2 centroids very close to each other
                 do
                 {
                     //init centroids and its velocity of current particle
                     particle.centroids = new List<Point>();
                     particle.velocity = new List<Point>();
-                    for (int j = 0; j < clustersCount; ++j)
+                    for (int j = 0; j < _clustersCount; ++j)
                     {
                         //append centroid
                         particle.centroids.Add(new Point());
-                        //randomly set centroids within image values
-                        particle.centroids.ElementAt(j).vec = new double[]
-                        {
-                            rnd.Next(image.Width), rnd.Next(image.Height), rnd.Next(255), rnd.Next(255), rnd.Next(255),
-                            rnd.Next(255)
-                        };
+                        //randomly set centroids within domain values
+                        particle.centroids.ElementAt(j).vec = Enumerable.Range(0, _pointDimensions)
+                            .Select(index => (double)rnd.Next(_domainLimits[index].min, _domainLimits[index].max)).ToArray();
 
-                        //init velocity with 0 or random within a given interval
+                        //init velocity with 0 [or random within a given interval] -> won't do that for now
                         particle.velocity.Add(new Point());
-                        particle.velocity.ElementAt(j).vec = new double[] { 0, 0, 0, 0, 0, 0 };
+                        particle.velocity.ElementAt(j).vec = Enumerable.Range(0, _pointDimensions)
+                            .Select(_ => 0.0).ToArray();
                     }
 
                     //compute the initial cost of particle
-                    particle.cost = ComputeFitnessForGivenParticle(particle, dataset);
+                    particle.cost = ComputeFitnessForGivenParticle(particle, _dataSet);
+
                 } while (Double.IsNaN(particle.cost) || Double.IsInfinity(particle.cost));
 
                 //pbest as copy of self
                 particle.pbest = particle.Clone();
             });
 
+            //social best, current implementation - star topology as global best
             var sbest = particles.Aggregate((min, current) => min.cost < current.cost ? min : current).Clone();
             for (int t = 0; t < tmax; t++)
             {
@@ -232,14 +261,14 @@ namespace PSOImageSegmentation
                 {
                     //foreach centroid
                     //compute velocity and move centroids
-                    for (int i = 0; i < clustersCount; i++) //WHY IS THERE A BUG?? HOOW ON EARTH
+                    for (int i = 0; i < _clustersCount; i++)
                     {
                         //the random component in velocity equation
                         double r1 = rnd.NextDouble();
                         double r2 = rnd.NextDouble();
 
                         var index = i;
-                        //update velocity
+                        //update velocity | we could limit velocity -> won't do for now
                         particle.velocity[index].vec = particle.velocity[index].vec
                             .Select((velocity, id) => w * velocity //weigth from previous velocity
                                 + c1 * r1 * (particle.pbest.centroids[index].vec.ElementAt(id) - particle.centroids[index].vec.ElementAt(id)) //cognitive component
@@ -247,11 +276,18 @@ namespace PSOImageSegmentation
                             ).ToArray();
                         //update centroids
                         particle.centroids[index].vec = particle.centroids[index].vec
-                            .Select((point, id) => point + particle.velocity[index].vec.ElementAt(id)).ToArray();
+                            .Select((point, id) => 
+                                //limit the values to its domain
+                                Math.Min(
+                                    Math.Max(
+                                        point + particle.velocity[index].vec.ElementAt(id),
+                                        _domainLimits[id].min)
+                                    , _domainLimits[id].max))
+                            .ToArray();
 
 
                         //check particles for convergence
-                        if (particle.velocity[index].vec.Min() < 0.1)
+                        if (particle.velocity[index].vec.Max() < 0.1)
                         {
                             mux.WaitOne();
                             particlesStillMoving++;
@@ -260,7 +296,7 @@ namespace PSOImageSegmentation
                     }
 
                     //calculate fitness for current particle in context of the image
-                    particle.cost = ComputeFitnessForGivenParticle(particle, dataset);
+                    particle.cost = ComputeFitnessForGivenParticle(particle, _dataSet);
                     //updating pbest
                     if (particle.cost < particle.pbest.cost)
                     {
@@ -283,14 +319,13 @@ namespace PSOImageSegmentation
                     break;
                 }
             }
-
             //solution is sbest
-            return ClusterTheImage(image, dataset, sbest.centroids);
+            return ClusteredDatasetToImage(_dataSet, sbest.centroids);
         }
 
-        Bitmap ClusterTheImage(Bitmap image, IEnumerable<Point> dataset, List<Point> centroids)
+        Bitmap ClusteredDatasetToImage(IEnumerable<Point> dataset, List<Point> centroids)
         {
-            var clusteredImage = new Bitmap(image.Width, image.Height);
+            var clusteredImage = new Bitmap(_width, _height);
 
             var clusters = GetClusters(dataset, centroids);
 
