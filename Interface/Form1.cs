@@ -71,7 +71,7 @@ namespace Interface
         private void button1_Click(object sender, EventArgs e)
         {
             var pso = new PSOimage();
-            var image = MakeGrayscale3(new Bitmap(Image.FromFile("./toji.jpg")));
+            var image = /*MakeGrayscale3*/(new Bitmap(Image.FromFile("./toji.jpg")));
             pictureBox1.Image = image;
             pso.GenerateDataSetFromBitmap(image);
             var psoed = pso.RunPSO();
