@@ -5,8 +5,6 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PSOImageSegmentation
 {
@@ -49,7 +47,7 @@ namespace PSOImageSegmentation
             }
 
         }
-        
+
         #endregion
 
         #region fitnessFunctions
@@ -190,7 +188,7 @@ namespace PSOImageSegmentation
 
         //associated dataset to the image
         private List<Point> _dataSet;
-        //size of image to be processed, needed to reconstruct the ouptut clustered image
+        //size of image to be processed, needed to reconstruct the output clustered image
         private int _width;
         private int _height;
         private PixelFormat _pixelFormat;
@@ -236,20 +234,22 @@ namespace PSOImageSegmentation
         }
 
         //PSO parameters
-        private int _clustersCount = 12;
+        private readonly int _clustersCount = 12;
+        private readonly int _particlesCount = 10;
+        //iterationCount
+        private readonly int _tmax = 50;
         //should be given when generating dataset
         private int _pointDimensions; //x,y,r,g,b,a
-        private int _particlesCount = 10;
-        //iterationCount
-        private int tmax = 50;
         //constants
         private double w = 0.73;
         private double c1 = 1.49;
         private double c2 = 2.0;
 
-        public PSOimage(int clustersCount)
+        public PSOimage(int clustersCount, int particlesCount, int iterationsCount)
         {
             _clustersCount = clustersCount;
+            _particlesCount = particlesCount;
+            _tmax = iterationsCount;
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace PSOImageSegmentation
 
             //social best, current implementation - star topology as global best
             var sbest = particles.Aggregate((min, current) => min.cost < current.cost ? min : current).Clone();
-            for (int t = 0; t < tmax; t++)
+            for (int t = 0; t < _tmax; t++)
             {
                 //mutex for parallel updating the sbest /and particlesStillMoving counter
                 var mux = new Mutex();
@@ -338,7 +338,7 @@ namespace PSOImageSegmentation
                             ).ToArray();
                         //update centroids
                         particle.centroids[index].vec = particle.centroids[index].vec
-                            .Select((point, id) => 
+                            .Select((point, id) =>
                                 //limit the values to its domain
                                 Math.Min(
                                     Math.Max(
