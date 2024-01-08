@@ -239,7 +239,7 @@ namespace PSOImageSegmentation
         private int _clustersCount = 12;
         //should be given when generating dataset
         private int _pointDimensions; //x,y,r,g,b,a
-        private int _particlesCount = 50;
+        private int _particlesCount = 10;
         //iterationCount
         private int tmax = 50;
         //constants
