@@ -80,9 +80,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PSOImageSegmentation\PSOImageSegmentation.csproj">
-      <Project>{0f1d2fb9-441a-4ef5-8e78-2dd498883cee}</Project>
-      <Name>PSOImageSegmentation</Name>
+    <ProjectReference Include="..\PSOClusteringAlgorithm\PSOClusteringAlgorithm.csproj">
+      <Project>{9335ceb7-916d-4a16-8fc4-e5f0fb999698}</Project>
+      <Name>PSOClusteringAlgorithm</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

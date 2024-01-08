@@ -188,16 +188,16 @@ namespace PSOImageSegmentation
         }
 
         //PSO parameters
-        private int _clustersCount = 12;
+        private int _clustersCount = 50;
         //should be given when generating dataset
         private int _pointDimensions; //x,y,r,g,b,a
-        private int _particlesCount = 50;
+        private int _particlesCount = 20;
         //iterationCount
-        private int tmax = 50;
+        private int tmax = 500;
         //constants
         private double w = 0.73;
         private double c1 = 1.49;
-        private double c2 = 2.0;
+        private double c2 = 1.49;
 
         /// <summary>
         /// value limits for a rgba image, values should be updated when dataset is generated

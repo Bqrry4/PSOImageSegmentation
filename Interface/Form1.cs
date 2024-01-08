@@ -1,4 +1,4 @@
-﻿using PSOImageSegmentation;
+﻿using PSOClusteringAlgorithm;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -70,7 +70,8 @@ namespace Interface
 
         private void button1_Click(object sender, EventArgs e)
         {
-            var pso = new PSOimage();
+            var pso = new PSOImageSegmentation(7, 10, 20);
+            pso.instanciateParticles();
             var image = /*MakeGrayscale3*/(new Bitmap(Image.FromFile("./toji.jpg")));
             pictureBox1.Image = image;
             pso.GenerateDataSetFromBitmap(image);
