@@ -32,7 +32,7 @@ namespace PSOUnitTests
             }
 
             var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters);
+            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
             //Act
@@ -60,10 +60,10 @@ namespace PSOUnitTests
                 foreach (var clusterPoint in cluster.Points)
                 {
                     kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0], 
+                        (int)clusterPoint.Components[0],
                         (int)clusterPoint.Components[1],
                         Color.FromArgb(
-                            (int)cluster.Centroid.Components[2], 
+                            (int)cluster.Centroid.Components[2],
                             (int)cluster.Centroid.Components[3],
                             (int)cluster.Centroid.Components[4]
                             ));
@@ -98,7 +98,7 @@ namespace PSOUnitTests
             }
 
             var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters);
+            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
             //Act
@@ -126,10 +126,10 @@ namespace PSOUnitTests
                 foreach (var clusterPoint in cluster.Points)
                 {
                     kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0], 
+                        (int)clusterPoint.Components[0],
                         (int)clusterPoint.Components[1],
                         Color.FromArgb(
-                            (int)cluster.Centroid.Components[2], 
+                            (int)cluster.Centroid.Components[2],
                             (int)cluster.Centroid.Components[3],
                             (int)cluster.Centroid.Components[4]
                             ));
@@ -164,7 +164,7 @@ namespace PSOUnitTests
             }
 
             var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters);
+            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
             //Act
@@ -192,10 +192,10 @@ namespace PSOUnitTests
                 foreach (var clusterPoint in cluster.Points)
                 {
                     kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0], 
+                        (int)clusterPoint.Components[0],
                         (int)clusterPoint.Components[1],
                         Color.FromArgb(
-                            (int)cluster.Centroid.Components[2], 
+                            (int)cluster.Centroid.Components[2],
                             (int)cluster.Centroid.Components[3],
                             (int)cluster.Centroid.Components[4]
                             ));
@@ -230,7 +230,7 @@ namespace PSOUnitTests
             }
 
             var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters);
+            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
             //Act
@@ -258,10 +258,10 @@ namespace PSOUnitTests
                 foreach (var clusterPoint in cluster.Points)
                 {
                     kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0], 
+                        (int)clusterPoint.Components[0],
                         (int)clusterPoint.Components[1],
                         Color.FromArgb(
-                            (int)cluster.Centroid.Components[2], 
+                            (int)cluster.Centroid.Components[2],
                             (int)cluster.Centroid.Components[3],
                             (int)cluster.Centroid.Components[4]
                             ));
@@ -298,7 +298,7 @@ namespace PSOUnitTests
             }
 
             var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters);
+            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
             //Act
@@ -326,10 +326,10 @@ namespace PSOUnitTests
                 foreach (var clusterPoint in cluster.Points)
                 {
                     kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0], 
+                        (int)clusterPoint.Components[0],
                         (int)clusterPoint.Components[1],
                         Color.FromArgb(
-                            (int)cluster.Centroid.Components[2], 
+                            (int)cluster.Centroid.Components[2],
                             (int)cluster.Centroid.Components[3],
                             (int)cluster.Centroid.Components[4]
                             ));
@@ -345,7 +345,7 @@ namespace PSOUnitTests
             Console.WriteLine($"PsoScore: {psoScore}");
         }
 
-        
+
         [TestMethod]
         [DataRow(4)]
         [DataRow(8)]
@@ -368,7 +368,7 @@ namespace PSOUnitTests
             }
 
             var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters);
+            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
             //Act
@@ -396,10 +396,10 @@ namespace PSOUnitTests
                 foreach (var clusterPoint in cluster.Points)
                 {
                     kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0], 
+                        (int)clusterPoint.Components[0],
                         (int)clusterPoint.Components[1],
                         Color.FromArgb(
-                            (int)cluster.Centroid.Components[2], 
+                            (int)cluster.Centroid.Components[2],
                             (int)cluster.Centroid.Components[3],
                             (int)cluster.Centroid.Components[4]
                             ));
