@@ -243,7 +243,7 @@ namespace PSOImageSegmentation
         //constants
         private double w = 0.73;
         private double c1 = 1.49;
-        private double c2 = 2.0;
+        private double c2 = 1.49;
 
         public PSOimage(int clustersCount, int particlesCount, int iterationsCount)
         {
