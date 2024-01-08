@@ -41,6 +41,7 @@
             this.iterationsNumeric = new System.Windows.Forms.NumericUpDown();
             this.iterationsNumericLabel = new System.Windows.Forms.Label();
             this.openFileButton = new System.Windows.Forms.Button();
+            this.observableCheckBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.initialPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clustersNumeric)).BeginInit();
@@ -201,11 +202,22 @@
             this.openFileButton.UseVisualStyleBackColor = true;
             this.openFileButton.Click += new System.EventHandler(this.openFileButton_Click);
             // 
+            // observableCheckBox
+            // 
+            this.observableCheckBox.AutoSize = true;
+            this.observableCheckBox.Location = new System.Drawing.Point(286, 532);
+            this.observableCheckBox.Name = "observableCheckBox";
+            this.observableCheckBox.Size = new System.Drawing.Size(81, 20);
+            this.observableCheckBox.TabIndex = 15;
+            this.observableCheckBox.Text = "Observe";
+            this.observableCheckBox.UseVisualStyleBackColor = true;
+            // 
             // PsoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1296, 644);
+            this.Controls.Add(this.observableCheckBox);
             this.Controls.Add(this.openFileButton);
             this.Controls.Add(this.iterationsNumericLabel);
             this.Controls.Add(this.iterationsNumeric);
@@ -247,6 +259,7 @@
         private System.Windows.Forms.NumericUpDown iterationsNumeric;
         private System.Windows.Forms.Label iterationsNumericLabel;
         private System.Windows.Forms.Button openFileButton;
+        private System.Windows.Forms.CheckBox observableCheckBox;
     }
 }
 

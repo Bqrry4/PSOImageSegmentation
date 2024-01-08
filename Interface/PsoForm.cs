@@ -52,24 +52,31 @@ namespace Interface
         {
             _pso = new PSOImageSegmentation(numberOfClusters, numberOfParticles, numberOfIterations);
             _pso.GenerateDataSetFromBitmap(_image);
-
-            _particleViews = Enumerable.Range(0, numberOfParticles)
-                .Select(i => new PictureBox
-                {
-                    Height = 64, 
-                    Width = 64,
-                    Visible = true,
-                    SizeMode = PictureBoxSizeMode.Zoom
-                }).ToArray();
-
+            
             particlePanel.Controls.Clear();
-            particlePanel.Controls.AddRange(_particleViews);
-
-            var particles = _pso.instanciateObservableParticles();
-
-            foreach (var particleObservable in particles)
+            if (observableCheckBox.Checked)
             {
-                subscriptions.Add(particleObservable.Subscribe(this));
+                _particleViews = Enumerable.Range(0, numberOfParticles)
+                    .Select(i => new PictureBox
+                    {
+                        Height = 80,
+                        Width = 80,
+                        Visible = true,
+                        SizeMode = PictureBoxSizeMode.Zoom
+                    }).ToArray();
+
+                particlePanel.Controls.AddRange(_particleViews);
+
+                var particles = _pso.instanciateObservableParticles();
+
+                foreach (var particleObservable in particles)
+                {
+                    subscriptions.Add(particleObservable.Subscribe(this));
+                }
+            }
+            else
+            {
+                _pso.instanciateParticles();
             }
 
             var image = await Task.Run(() => _pso.RunPSO());
