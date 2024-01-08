@@ -1,17 +1,16 @@
-﻿using PSOImageSegmentation;
+﻿using PSOClusteringAlgorithm;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static PSOImageSegmentation.PSOimage;
+using Point = System.Drawing.Point;
 
 namespace Interface
 {
-    public partial class PsoForm : Form
+    public partial class PsoForm : Form, IObserver<ParticleObservable>
     {
         public PsoForm()
         {
@@ -20,10 +19,12 @@ namespace Interface
 
 
         private readonly OpenFileDialog _openFileDialog = new OpenFileDialog();
-        private List<PictureBox> _particleViews;
-        private List<IObservable<IEnumerable<PSOimage.Point>>> _particleObservables;
+        private PictureBox[] _particleViews;
+
+        private List<IDisposable> subscriptions = new List<IDisposable>();
 
         private Bitmap _image;
+        private PSOImageSegmentation _pso;
 
         private int numberOfParticles = 10;
         private int numberOfClusters = 8;
@@ -49,13 +50,29 @@ namespace Interface
 
         private async void startButton_Click(object sender, EventArgs e)
         {
-            var pso = new PSOimage(numberOfClusters, numberOfParticles, numberOfIterations);
-            pso.GenerateDataSetFromBitmap(_image);
+            _pso = new PSOImageSegmentation(numberOfClusters, numberOfParticles, numberOfIterations);
+            _pso.GenerateDataSetFromBitmap(_image);
 
-            _particleViews = Enumerable.Range(0, numberOfParticles).Select(_ => new PictureBox()).ToList();
-            _particleObservables = new List<IObservable<IEnumerable<PSOimage.Point>>>(numberOfIterations);
+            _particleViews = Enumerable.Range(0, numberOfParticles)
+                .Select(i => new PictureBox
+                {
+                    Height = 50, 
+                    Width = 50, 
+                    Location = new Point(150 + i % 3 * 54, 50 + i / 3 * 54),
+                    Visible = true
+                }).ToArray();
 
-            var (image, _) = await Task.Run(() => pso.RunPSO());
+            Controls.AddRange(_particleViews);
+            //particlePanel.Controls.AddRange(_particleViews);
+
+            var particles = _pso.instanciateObservableParticles();
+
+            foreach (var particleObservable in particles)
+            {
+                subscriptions.Add(particleObservable.Subscribe(this));
+            }
+
+            var image = await Task.Run(() => _pso.RunPSO());
 
             resultPictureBox.Image = image;
         }
@@ -91,6 +108,20 @@ namespace Interface
                 MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
                                 $"Details:\n\n{ex.StackTrace}");
             }
+        }
+
+        public void OnNext(ParticleObservable value)
+        {
+            var image = _pso.ClusteredDatasetToImage(value.centroids);
+            _particleViews[value.Index].Image = image;
+        }
+
+        public void OnError(Exception error)
+        {
+        }
+
+        public void OnCompleted()
+        {
         }
     }
 }

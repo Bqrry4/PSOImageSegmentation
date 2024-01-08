@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PSOClusteringAlgorithm
 {
@@ -18,14 +16,14 @@ namespace PSOClusteringAlgorithm
             Index = index;
         }
 
-        private readonly HashSet<IObserver<ParticleObservable>> _observers =
+        HashSet<IObserver<ParticleObservable>> Observers { get; set; } =
             new HashSet<IObserver<ParticleObservable>>();
 
         public IDisposable Subscribe(IObserver<ParticleObservable> observer)
         {
-            _observers.Add(observer);
+            Observers.Add(observer);
 
-            return new Unsubscriber(_observers, observer);
+            return new Unsubscriber(Observers, observer);
         }
 
         internal sealed class Unsubscriber : IDisposable
@@ -44,10 +42,23 @@ namespace PSOClusteringAlgorithm
         {
             base.Update();
 
-            foreach (var observer in _observers)
+            foreach (var observer in Observers)
             {
                 observer.OnNext(this);
             }
+        }
+
+        public override Particle Clone()
+        {
+            return new ParticleObservable(Index)
+            {
+                cost = this.cost,
+                velocity = this.velocity,
+                centroids = new List<Point>(this.centroids.Select(point => new Point { vec = point.vec.Select(value => value) })),
+                Observers = Observers
+                //can be ignored
+                //pbest = ...;
+            };
         }
     }
 }

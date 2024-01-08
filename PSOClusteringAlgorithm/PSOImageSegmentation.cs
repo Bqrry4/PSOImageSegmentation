@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PSOClusteringAlgorithm
 {
@@ -86,12 +83,12 @@ namespace PSOClusteringAlgorithm
         public Bitmap RunPSO()
         {
             var result = _psoAlgorithm.RunPSO();
-            return ClusteredDatasetToImage(_psoAlgorithm.DataSet, result.centroids);
+            return ClusteredDatasetToImage(result.centroids);
         }
 
-        Bitmap ClusteredDatasetToImage(IEnumerable<Point> dataset, List<Point> centroids)
+        public Bitmap ClusteredDatasetToImage(List<Point> centroids)
         {
-            var clusters = PSOClusteringAlgorithm.GetClusters(dataset, centroids);
+            var clusters = PSOClusteringAlgorithm.GetClusters(_psoAlgorithm.DataSet, centroids);
 
             var clusteredImage = new Bitmap(_width, _height, _pixelFormat);
 

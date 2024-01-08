@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +28,7 @@ namespace PSOClusteringAlgorithm
         //personal best
         public Particle pbest;
 
-        public Particle Clone()
+        public virtual Particle Clone()
         {
             return new Particle
             {
