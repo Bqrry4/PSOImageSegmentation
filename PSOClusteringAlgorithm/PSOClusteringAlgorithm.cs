@@ -227,8 +227,8 @@ namespace PSOClusteringAlgorithm
         //should be called before the RunPSO if monitosing the particles is desired
         public IEnumerable<ParticleObservable> instanciateObservableParticles()
         {
-            var observables = Enumerable.Range(0, ParticlesCount).Select(index => new ParticleObservable(index));
-            particles = observables.ToArray();
+            var observables = Enumerable.Range(0, ParticlesCount).Select(index => new ParticleObservable(index)).ToArray();
+            particles = observables;
             return observables;
         }
 

@@ -56,14 +56,14 @@ namespace Interface
             _particleViews = Enumerable.Range(0, numberOfParticles)
                 .Select(i => new PictureBox
                 {
-                    Height = 50, 
-                    Width = 50, 
-                    Location = new Point(150 + i % 3 * 54, 50 + i / 3 * 54),
-                    Visible = true
+                    Height = 64, 
+                    Width = 64,
+                    Visible = true,
+                    SizeMode = PictureBoxSizeMode.Zoom
                 }).ToArray();
 
-            Controls.AddRange(_particleViews);
-            //particlePanel.Controls.AddRange(_particleViews);
+            particlePanel.Controls.Clear();
+            particlePanel.Controls.AddRange(_particleViews);
 
             var particles = _pso.instanciateObservableParticles();
 
