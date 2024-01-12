@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace PSOClusteringAlgorithm
 {
-
-    public class PSOImageSegmentation
+    /// <summary>
+    /// Extended PSO for an image
+    /// </summary>
+    public class PSOImageSegmentation : PSOClusteringAlgorithm
     {
-        private readonly PSOClusteringAlgorithm _psoAlgorithm = new PSOClusteringAlgorithm();
-
         //parameters of image to be processed, needed to reconstruct the ouptut clustered image
         private int _width;
         private int _height;
@@ -18,11 +18,11 @@ namespace PSOClusteringAlgorithm
 
         public PSOImageSegmentation(int clusterCount, int particleCount, int maxIterration)
         {
-            _psoAlgorithm.ClustersCount = clusterCount;
-            _psoAlgorithm.ParticlesCount = particleCount;
-            _psoAlgorithm.tmax = maxIterration;
+            ClustersCount = clusterCount;
+            ParticlesCount = particleCount;
+            tmax = maxIterration;
 
-            _psoAlgorithm.DomainLimits = new List<(int, int)>
+            DomainLimits = new List<(int, int)>
             {
                 (0, 0), //x
                 (0, 0), //y
@@ -44,7 +44,7 @@ namespace PSOClusteringAlgorithm
             byte[] data = new byte[size];
             System.Runtime.InteropServices.Marshal.Copy(bitmapData.Scan0, data, 0, size);
 
-            _psoAlgorithm.DataSet = data.Select((x, i) => (Index: i, Value: x))
+            DataSet = data.Select((x, i) => (Index: i, Value: x))
                 .GroupBy(x => x.Index / depth)
                 .Select((value, index) =>
                 {
@@ -60,35 +60,24 @@ namespace PSOClusteringAlgorithm
             _width = bitmapData.Width;
             _height = bitmapData.Height;
             _pixelFormat = bitmapData.PixelFormat;
-            _psoAlgorithm.PointDimensions = depth + 2; //color + position
+            PointDimensions = depth + 2; //color + position
             //updating the domain limits for position
-            _psoAlgorithm.DomainLimits[0] = (0, _width - 1);
-            _psoAlgorithm.DomainLimits[1] = (0, _height - 1);
+            DomainLimits[0] = (0, _width - 1);
+            DomainLimits[1] = (0, _height - 1);
 
             image.UnlockBits(bitmapData);
         }
 
-        //should be called before the RunPSO, made that way to keep the observable feature
-        public void instanciateParticles()
-        {
-            _psoAlgorithm.instanciateParticles();
-        }
-
-        //should be called before the RunPSO if monitosing the particles is desired
-        public IEnumerable<ParticleObservable> instanciateObservableParticles()
-        {
-            return _psoAlgorithm.instanciateObservableParticles();
-        }
 
         public Bitmap RunPSO()
         {
-            var result = _psoAlgorithm.RunPSO();
-            return ClusteredDatasetToImage(result.centroids);
+            var result = base.RunPSO();
+            return ClusteredDatasetToImage(result.Centroids);
         }
 
         public Bitmap ClusteredDatasetToImage(List<Point> centroids)
         {
-            var clusters = PSOClusteringAlgorithm.GetClusters(_psoAlgorithm.DataSet, centroids);
+            var clusters = ClusteringMethods.GetClusters(DataSet, centroids, ClusteringMethods.EuclidianDistance);
 
             var clusteredImage = new Bitmap(_width, _height, _pixelFormat);
 

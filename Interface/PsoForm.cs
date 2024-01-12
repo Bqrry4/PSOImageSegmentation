@@ -52,7 +52,9 @@ namespace Interface
         {
             _pso = new PSOImageSegmentation(numberOfClusters, numberOfParticles, numberOfIterations);
             _pso.GenerateDataSetFromBitmap(_image);
-            
+            _pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
+
+
             particlePanel.Controls.Clear();
             if (observableCheckBox.Checked)
             {
@@ -67,17 +69,19 @@ namespace Interface
 
                 particlePanel.Controls.AddRange(_particleViews);
 
-                var particles = _pso.instanciateObservableParticles();
+                var particles = Enumerable.Range(0, numberOfParticles).Select(index => new ParticleObservable(index)).ToArray();
 
                 foreach (var particleObservable in particles)
                 {
                     subscriptions.Add(particleObservable.Subscribe(this));
                 }
+
+                _pso.Particles = particles;
             }
-            else
+/*            else
             {
                 _pso.instanciateParticles();
-            }
+            }*/
 
             var image = await Task.Run(() => _pso.RunPSO());
 
@@ -119,7 +123,7 @@ namespace Interface
 
         public void OnNext(ParticleObservable value)
         {
-            var image = _pso.ClusteredDatasetToImage(value.centroids);
+            var image = _pso.ClusteredDatasetToImage(value.Centroids);
             _particleViews[value.Index].Image = image;
         }
 

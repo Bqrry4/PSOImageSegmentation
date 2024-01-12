@@ -42,6 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClusteringMethods.cs" />
+    <Compile Include="Particle.cs" />
+    <Compile Include="ClustersSpawnStrategy.cs" />
     <Compile Include="PSOClusteringAlgorithm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PSOClusteringObservable.cs" />

@@ -5,7 +5,7 @@ using System.Linq;
 namespace PSOClusteringAlgorithm
 {
 
-    public class ParticleObservable : Particle, IObservable<ParticleObservable>
+    public class ParticleObservable : IParticle, IObservable<ParticleObservable>
     {
 
         //index in the swarn
@@ -38,29 +38,41 @@ namespace PSOClusteringAlgorithm
             public void Dispose() => _observers.Remove(_observer);
         }
 
-        public override void Update()
-        {
-            base.Update();
 
-            foreach (var observer in Observers)
+        public List<Point> Centroids { get; set; }
+
+        //Update observers when cost is updated
+        private double _cost;
+        public double Cost
+        {
+            get => _cost;
+            set
             {
-                observer.OnNext(this);
+                _cost = value;
+
+               foreach (var observer in Observers)
+               {
+                   observer.OnNext(this);
+               }
             }
         }
 
-        public override Particle Clone()
+        public List<Point> Velocity { get; set; }
+        public IParticle PBest { get; set; }
+
+        public IParticle Clone()
         {
             return new ParticleObservable(Index)
             {
-                cost = this.cost,
-                velocity = this.velocity,
-                centroids = new List<Point>(this.centroids.Select(point => new Point { vec = point.vec.Select(value => value) })),
-                Observers = Observers
-                //can be ignored
-                //pbest = ...;
+                Cost = this.Cost,
+                Velocity = this.Velocity,
+                Centroids = new List<Point>(this.Centroids.Select(point => new Point { vec = point.vec.Select(value => value) })),
+                Observers = Observers,
+                PBest = this.PBest
             };
         }
     }
+
 }
 
 
