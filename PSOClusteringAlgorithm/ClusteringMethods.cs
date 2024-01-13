@@ -104,7 +104,7 @@ namespace PSOClusteringAlgorithm
         /// <param name="dataset"></param>
         /// <param name="centroids"></param>
         /// <param name="distanceFunc">Function that should compute distance(similarity) between 2 patterns</param>
-        /// <returns></returns>
+        /// <returns>clusterCount x pointsInCluster</returns>
         public static List<List<Point>> GetClusters(IEnumerable<Point> dataset, IEnumerable<Point> centroids, Func<IEnumerable<double>, IEnumerable<double>, double> distanceFunc)
         {
             //clusterCount x pointsInCluster, holds the associated points to a cluster

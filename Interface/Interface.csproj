@@ -80,9 +80,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PSOClusteringAlgorithm\PSOClusteringAlgorithm.csproj">
+    <ProjectReference Include="..\PSOClusteringAlgorithm\ClusteringAlgorithm.csproj">
       <Project>{9335ceb7-916d-4a16-8fc4-e5f0fb999698}</Project>
-      <Name>PSOClusteringAlgorithm</Name>
+      <Name>ClusteringAlgorithm</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

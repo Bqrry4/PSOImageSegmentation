@@ -11,11 +11,11 @@ namespace PSOClusteringAlgorithm
     /// </summary>
     public interface IClusterSpawner
     {
-        Point PlaceCentroid();
+        List<Point> PlaceCentroids(int clusterCount);
     }
 
     /// <summary>
-    /// randomly set Centroids within domain values
+    /// Randomly set Centroids within domain values
     /// </summary>
     public class SpawnInDomainValues: IClusterSpawner
     {
@@ -29,18 +29,18 @@ namespace PSOClusteringAlgorithm
             _domainLimits = domainLimits;
         }
 
-        public Point PlaceCentroid()
+        public List<Point> PlaceCentroids(int clusterCount)
         {
-
-            return new Point
+            return Enumerable.Range(0, clusterCount).Select(_ => new Point
             {
                 vec = Enumerable.Range(0, _pointDimensions)
                     .Select(index => (double)_rnd.Next(_domainLimits[index].min, _domainLimits[index].max)).ToArray()
-            };
+            }).ToList();
         }
     }
     /// <summary>
-    /// randomly set Centroids with points in dataset, runs showing it does converge better than inDomain
+    /// The Forgy method.
+    /// Randomly set Centroids with points in dataset, runs showing it does converge better than inDomain
     /// </summary>
     public class SpawnInDatasetValues : IClusterSpawner
     {
@@ -51,13 +51,32 @@ namespace PSOClusteringAlgorithm
         {
             _dataSet = dataSet;
         }
-        public Point PlaceCentroid()
+        public List<Point> PlaceCentroids(int clusterCount)
         {
-            return new Point
+            return Enumerable.Range(0, clusterCount).Select(_ => new Point
             {
                 vec = _dataSet.ElementAt(_rnd.Next(0, _dataSet.Count)).vec
                     .Select(x => x).ToArray()
-            };
+            }).ToList();
+        }
+    }
+    /// <summary>
+    /// Using default Kmeans implementation with Forgy init method(in dataset)
+    /// </summary>
+    public class SpawnWithKMeansSeed : IClusterSpawner
+    {
+        private readonly KMeansClustering _kMeans = new KMeansClustering();
+
+        public SpawnWithKMeansSeed(List<Point> dataSet, int maxIterration)
+        {
+            _kMeans.DataSet = dataSet;
+            _kMeans.tmax = maxIterration;
+        }
+        public List<Point> PlaceCentroids(int clusterCount)
+        {
+            _kMeans.ClustersCount = clusterCount;
+
+            return _kMeans.RunKMeans();
         }
     }
 }

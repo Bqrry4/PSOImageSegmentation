@@ -52,8 +52,10 @@ namespace Interface
         {
             _pso = new PSOImageSegmentation(numberOfClusters, numberOfParticles, numberOfIterations);
             _pso.GenerateDataSetFromBitmap(_image);
-            _pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
 
+            /*Set the strategy*/
+            //_pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
+            _pso.CentroidSpawner = new SpawnWithKMeansSeed(_pso.DataSet, 5);
 
             particlePanel.Controls.Clear();
             if (observableCheckBox.Checked)

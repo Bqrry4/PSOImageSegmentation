@@ -77,26 +77,21 @@ namespace PSOClusteringAlgorithm
                 Particles = Enumerable.Range(0, ParticlesCount).Select(_ => new Particle()).ToArray();
             }
 
-            //init Particles randomly
             Parallel.ForEach(Particles, particle =>
             {
                 //regenerate particle if its Cost was NaN or infinite
                 //caused by spawn of 2 Centroids very close to each other, can happen if image is very uniform (ex. white background)
                 do
                 {
-                    //init Centroids and its Velocity of current particle
-                    particle.Centroids = new List<Point>();
-                    particle.Velocity = new List<Point>();
-                    for (int j = 0; j < ClustersCount; ++j)
-                    {
-                        //append centroid using the setted strategy
-                        particle.Centroids.Add(CentroidSpawner.PlaceCentroid());
+                    //init Centroids with setted strategy
+                    particle.Centroids = CentroidSpawner.PlaceCentroids(ClustersCount);
 
-                        //init Velocity with 0 [or random within a given interval] -> won't do that for now as it does not make a much bigger difference
-                        particle.Velocity.Add(new Point());
-                        particle.Velocity.ElementAt(j).vec = Enumerable.Range(0, PointDimensions)
-                            .Select(_ => 0.0).ToArray();
-                    }
+                    //init Velocity with 0 [or random within a given interval] -> won't do that for now as it does not make a much bigger difference
+                    particle.Velocity = Enumerable.Range(0, ClustersCount).Select(_ => new Point
+                    {
+                        vec = Enumerable.Range(0, PointDimensions)
+                            .Select(__ => 0.0).ToArray()
+                    }).ToList();
 
                     //compute the initial Cost of particle
                     particle.Cost = ComputeFitnessForGivenParticle(particle, DataSet);
@@ -112,10 +107,11 @@ namespace PSOClusteringAlgorithm
             Random _rnd = new Random();
             //social best, current implementation - star topology as global best
             var sbest = Particles.Aggregate((min, current) => min.Cost < current.Cost ? min : current).Clone();
+            //mutex for parallel updating the sbest /and particlesStillMoving counter
+            var mux = new Mutex();
+
             for (int t = 0; t < tmax; t++)
             {
-                //mutex for parallel updating the sbest /and particlesStillMoving counter
-                var mux = new Mutex();
                 //needed to check convergency
                 int particlesStillMoving = 0;
                 //foreach (var particle in Particles)

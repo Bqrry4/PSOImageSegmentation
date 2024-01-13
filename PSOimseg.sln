@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMeans", "KMeans\KMeans.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSOUnitTests", "PSOUnitTests\PSOUnitTests.csproj", "{A93CF2E0-4290-4D46-963E-47C7603CF1BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSOClusteringAlgorithm", "PSOClusteringAlgorithm\PSOClusteringAlgorithm.csproj", "{9335CEB7-916D-4A16-8FC4-E5F0FB999698}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClusteringAlgorithm", "PSOClusteringAlgorithm\ClusteringAlgorithm.csproj", "{9335CEB7-916D-4A16-8FC4-E5F0FB999698}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
