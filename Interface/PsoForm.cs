@@ -55,7 +55,7 @@ namespace Interface
 
             /*Set the strategy*/
             //_pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
-            _pso.CentroidSpawner = new SpawnWithKMeansSeed(_pso.DataSet, 5);
+            _pso.CentroidSpawner = new SpawnWithKMeansSeed(_pso.DataSet, _pso.tmax);
 
             particlePanel.Controls.Clear();
             if (observableCheckBox.Checked)

@@ -77,26 +77,23 @@ namespace PSOClusteringAlgorithm
                 Particles = Enumerable.Range(0, ParticlesCount).Select(_ => new Particle()).ToArray();
             }
 
+
+            //init positions(centroids)
+            CentroidSpawner.SpawnSwarm(Particles, ClustersCount);
+
+
+            //init other values
             Parallel.ForEach(Particles, particle =>
             {
-                //regenerate particle if its Cost was NaN or infinite
-                //caused by spawn of 2 Centroids very close to each other, can happen if image is very uniform (ex. white background)
-                do
+                //compute the initial Cost of particle
+                particle.Cost = ComputeFitnessForGivenParticle(particle, DataSet);
+
+                //init Velocity with 0 [or random within a given interval] -> won't do that for now as it does not make a much bigger difference
+                particle.Velocity = Enumerable.Range(0, ClustersCount).Select(_ => new Point
                 {
-                    //init Centroids with setted strategy
-                    particle.Centroids = CentroidSpawner.PlaceCentroids(ClustersCount);
-
-                    //init Velocity with 0 [or random within a given interval] -> won't do that for now as it does not make a much bigger difference
-                    particle.Velocity = Enumerable.Range(0, ClustersCount).Select(_ => new Point
-                    {
-                        vec = Enumerable.Range(0, PointDimensions)
-                            .Select(__ => 0.0).ToArray()
-                    }).ToList();
-
-                    //compute the initial Cost of particle
-                    particle.Cost = ComputeFitnessForGivenParticle(particle, DataSet);
-
-                } while (Double.IsNaN(particle.Cost) || Double.IsInfinity(particle.Cost));
+                    vec = Enumerable.Range(0, PointDimensions)
+                        .Select(__ => 0.0).ToArray()
+                }).ToList();
 
                 //PBest as copy of self
                 particle.PBest = particle.Clone();
