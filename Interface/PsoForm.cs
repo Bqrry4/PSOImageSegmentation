@@ -54,8 +54,12 @@ namespace Interface
             _pso.GenerateDataSetFromBitmap(_image);
 
             /*Set the strategy*/
-            //_pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
-            _pso.CentroidSpawner = new SpawnWithKMeansSeed(_pso.DataSet, _pso.tmax);
+            _pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
+            //_pso.CentroidSpawner = new SpawnWithKMeansSeed(_pso.DataSet, _pso.tmax);
+
+            /*Set the version of algorithm*/
+            _pso.VicinityType = SbestType.Geographic;
+            _pso.VicinitySize = 4;
 
             particlePanel.Controls.Clear();
             if (observableCheckBox.Checked)
