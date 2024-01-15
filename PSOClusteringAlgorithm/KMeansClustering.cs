@@ -34,9 +34,9 @@ namespace PSOClusteringAlgorithm
             Random _rnd = new Random();
             //init centroids
             List<Point> centroids = Enumerable.Range(0, ClustersCount).Select(_ => new Point
-                {
-                    vec = DataSet.ElementAt(_rnd.Next(0, DataSet.Count)).vec.Select(x => x)
-                })
+            {
+                vec = DataSet.ElementAt(_rnd.Next(0, DataSet.Count)).vec.Select(x => x)
+            })
                 .ToList();
 
             for (int t = 0; t < tmax; t++)

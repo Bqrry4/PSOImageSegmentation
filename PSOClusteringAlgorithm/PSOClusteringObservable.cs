@@ -50,10 +50,10 @@ namespace PSOClusteringAlgorithm
             {
                 _cost = value;
 
-               foreach (var observer in Observers)
-               {
-                   observer.OnNext(this);
-               }
+                foreach (var observer in Observers)
+                {
+                    observer.OnNext(this);
+                }
             }
         }
 

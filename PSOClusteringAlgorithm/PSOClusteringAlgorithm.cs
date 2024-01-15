@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -112,7 +111,7 @@ namespace PSOClusteringAlgorithm
                     for (int i = 0; i < rightNeighbours; ++i)
                     {
                         var neighbour = Particles[(particleIndex + i + 1) % Particles.Length];
-                        if (neighbour.Cost < sbest.Cost )
+                        if (neighbour.Cost < sbest.Cost)
                         {
                             sbest = neighbour;
                         }

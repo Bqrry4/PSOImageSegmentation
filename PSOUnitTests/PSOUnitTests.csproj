@@ -57,13 +57,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\KMeans\KMeans.csproj">
-      <Project>{0d3c6293-7c26-4727-8cac-a111c357bc05}</Project>
-      <Name>KMeans</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PSOImageSegmentation\PSOImageSegmentation.csproj">
-      <Project>{0f1d2fb9-441a-4ef5-8e78-2dd498883cee}</Project>
-      <Name>PSOImageSegmentation</Name>
+    <ProjectReference Include="..\PSOClusteringAlgorithm\ClusteringAlgorithm.csproj">
+      <Project>{9335ceb7-916d-4a16-8fc4-e5f0fb999698}</Project>
+      <Name>ClusteringAlgorithm</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

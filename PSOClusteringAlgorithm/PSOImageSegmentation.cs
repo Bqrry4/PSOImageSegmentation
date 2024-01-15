@@ -69,7 +69,7 @@ namespace PSOClusteringAlgorithm
         }
 
 
-        public new Bitmap RunPSO()
+        public Bitmap RunImagePSO()
         {
             var result = base.RunPSO();
             return ClusteredDatasetToImage(result.Centroids);

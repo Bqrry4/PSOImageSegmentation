@@ -5,10 +5,6 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interface", "Interface\Interface.csproj", "{607F257F-A266-4026-BB26-6D81EDADEC41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSOImageSegmentation", "PSOImageSegmentation\PSOImageSegmentation.csproj", "{0F1D2FB9-441A-4EF5-8E78-2DD498883CEE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KMeans", "KMeans\KMeans.csproj", "{0D3C6293-7C26-4727-8CAC-A111C357BC05}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSOUnitTests", "PSOUnitTests\PSOUnitTests.csproj", "{A93CF2E0-4290-4D46-963E-47C7603CF1BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClusteringAlgorithm", "PSOClusteringAlgorithm\ClusteringAlgorithm.csproj", "{9335CEB7-916D-4A16-8FC4-E5F0FB999698}"
@@ -23,14 +19,6 @@ Global
 		{607F257F-A266-4026-BB26-6D81EDADEC41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{607F257F-A266-4026-BB26-6D81EDADEC41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{607F257F-A266-4026-BB26-6D81EDADEC41}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F1D2FB9-441A-4EF5-8E78-2DD498883CEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F1D2FB9-441A-4EF5-8E78-2DD498883CEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F1D2FB9-441A-4EF5-8E78-2DD498883CEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F1D2FB9-441A-4EF5-8E78-2DD498883CEE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D3C6293-7C26-4727-8CAC-A111C357BC05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D3C6293-7C26-4727-8CAC-A111C357BC05}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D3C6293-7C26-4727-8CAC-A111C357BC05}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D3C6293-7C26-4727-8CAC-A111C357BC05}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A93CF2E0-4290-4D46-963E-47C7603CF1BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A93CF2E0-4290-4D46-963E-47C7603CF1BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A93CF2E0-4290-4D46-963E-47C7603CF1BA}.Release|Any CPU.ActiveCfg = Release|Any CPU

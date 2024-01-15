@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PSOClusteringAlgorithm
@@ -19,7 +18,7 @@ namespace PSOClusteringAlgorithm
     /// <summary>
     /// Randomly set Centroids within domain values
     /// </summary>
-    public class SpawnInDomainValues: IClusterSpawner
+    public class SpawnInDomainValues : IClusterSpawner
     {
         private readonly int _pointDimensions;
         private readonly List<(int min, int max)> _domainLimits;

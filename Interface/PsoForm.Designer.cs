@@ -42,6 +42,10 @@
             this.iterationsNumericLabel = new System.Windows.Forms.Label();
             this.openFileButton = new System.Windows.Forms.Button();
             this.observableCheckBox = new System.Windows.Forms.CheckBox();
+            this.seedLabel = new System.Windows.Forms.Label();
+            this.socialLabel = new System.Windows.Forms.Label();
+            this.seedComboBox = new System.Windows.Forms.ComboBox();
+            this.socialComboBox = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.resultPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.initialPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clustersNumeric)).BeginInit();
@@ -51,7 +55,7 @@
             // 
             // resultPictureBox
             // 
-            this.resultPictureBox.Location = new System.Drawing.Point(881, 169);
+            this.resultPictureBox.Location = new System.Drawing.Point(880, 241);
             this.resultPictureBox.Margin = new System.Windows.Forms.Padding(4);
             this.resultPictureBox.Name = "resultPictureBox";
             this.resultPictureBox.Size = new System.Drawing.Size(402, 285);
@@ -62,7 +66,7 @@
             // startButton
             // 
             this.startButton.Enabled = false;
-            this.startButton.Location = new System.Drawing.Point(286, 559);
+            this.startButton.Location = new System.Drawing.Point(286, 583);
             this.startButton.Margin = new System.Windows.Forms.Padding(4);
             this.startButton.Name = "startButton";
             this.startButton.Size = new System.Drawing.Size(100, 33);
@@ -80,7 +84,7 @@
             // 
             // initialPictureBox
             // 
-            this.initialPictureBox.Location = new System.Drawing.Point(13, 169);
+            this.initialPictureBox.Location = new System.Drawing.Point(15, 241);
             this.initialPictureBox.Margin = new System.Windows.Forms.Padding(4);
             this.initialPictureBox.Name = "initialPictureBox";
             this.initialPictureBox.Size = new System.Drawing.Size(402, 285);
@@ -91,7 +95,7 @@
             // particleSelectLabel
             // 
             this.particleSelectLabel.AutoSize = true;
-            this.particleSelectLabel.Location = new System.Drawing.Point(169, 79);
+            this.particleSelectLabel.Location = new System.Drawing.Point(164, 130);
             this.particleSelectLabel.Name = "particleSelectLabel";
             this.particleSelectLabel.Size = new System.Drawing.Size(59, 16);
             this.particleSelectLabel.TabIndex = 6;
@@ -99,7 +103,7 @@
             // 
             // clustersNumeric
             // 
-            this.clustersNumeric.Location = new System.Drawing.Point(13, 98);
+            this.clustersNumeric.Location = new System.Drawing.Point(8, 149);
             this.clustersNumeric.Maximum = new decimal(new int[] {
             50,
             0,
@@ -123,7 +127,7 @@
             // clustersNumericLabel
             // 
             this.clustersNumericLabel.AutoSize = true;
-            this.clustersNumericLabel.Location = new System.Drawing.Point(34, 79);
+            this.clustersNumericLabel.Location = new System.Drawing.Point(29, 130);
             this.clustersNumericLabel.Name = "clustersNumericLabel";
             this.clustersNumericLabel.Size = new System.Drawing.Size(55, 16);
             this.clustersNumericLabel.TabIndex = 8;
@@ -132,7 +136,7 @@
             // initialPictureBoxLabel
             // 
             this.initialPictureBoxLabel.AutoSize = true;
-            this.initialPictureBoxLabel.Location = new System.Drawing.Point(149, 148);
+            this.initialPictureBoxLabel.Location = new System.Drawing.Point(151, 220);
             this.initialPictureBoxLabel.Name = "initialPictureBoxLabel";
             this.initialPictureBoxLabel.Size = new System.Drawing.Size(96, 16);
             this.initialPictureBoxLabel.TabIndex = 9;
@@ -141,7 +145,7 @@
             // resultPictureBoxLabel
             // 
             this.resultPictureBoxLabel.AutoSize = true;
-            this.resultPictureBoxLabel.Location = new System.Drawing.Point(1065, 148);
+            this.resultPictureBoxLabel.Location = new System.Drawing.Point(1064, 220);
             this.resultPictureBoxLabel.Name = "resultPictureBoxLabel";
             this.resultPictureBoxLabel.Size = new System.Drawing.Size(45, 16);
             this.resultPictureBoxLabel.TabIndex = 10;
@@ -149,7 +153,7 @@
             // 
             // particleNumeric
             // 
-            this.particleNumeric.Location = new System.Drawing.Point(145, 98);
+            this.particleNumeric.Location = new System.Drawing.Point(140, 149);
             this.particleNumeric.Minimum = new decimal(new int[] {
             10,
             0,
@@ -167,7 +171,7 @@
             // 
             // iterationsNumeric
             // 
-            this.iterationsNumeric.Location = new System.Drawing.Point(286, 98);
+            this.iterationsNumeric.Location = new System.Drawing.Point(281, 149);
             this.iterationsNumeric.Minimum = new decimal(new int[] {
             5,
             0,
@@ -186,7 +190,7 @@
             // iterationsNumericLabel
             // 
             this.iterationsNumericLabel.AutoSize = true;
-            this.iterationsNumericLabel.Location = new System.Drawing.Point(311, 79);
+            this.iterationsNumericLabel.Location = new System.Drawing.Point(306, 130);
             this.iterationsNumericLabel.Name = "iterationsNumericLabel";
             this.iterationsNumericLabel.Size = new System.Drawing.Size(61, 16);
             this.iterationsNumericLabel.TabIndex = 13;
@@ -194,7 +198,7 @@
             // 
             // openFileButton
             // 
-            this.openFileButton.Location = new System.Drawing.Point(37, 559);
+            this.openFileButton.Location = new System.Drawing.Point(37, 583);
             this.openFileButton.Name = "openFileButton";
             this.openFileButton.Size = new System.Drawing.Size(91, 33);
             this.openFileButton.TabIndex = 14;
@@ -205,18 +209,68 @@
             // observableCheckBox
             // 
             this.observableCheckBox.AutoSize = true;
-            this.observableCheckBox.Location = new System.Drawing.Point(286, 532);
+            this.observableCheckBox.Location = new System.Drawing.Point(286, 556);
             this.observableCheckBox.Name = "observableCheckBox";
             this.observableCheckBox.Size = new System.Drawing.Size(81, 20);
             this.observableCheckBox.TabIndex = 15;
             this.observableCheckBox.Text = "Observe";
             this.observableCheckBox.UseVisualStyleBackColor = true;
             // 
+            // seedLabel
+            // 
+            this.seedLabel.AutoSize = true;
+            this.seedLabel.Location = new System.Drawing.Point(12, 43);
+            this.seedLabel.Name = "seedLabel";
+            this.seedLabel.Size = new System.Drawing.Size(109, 16);
+            this.seedLabel.TabIndex = 17;
+            this.seedLabel.Text = "Seeding strategy";
+            // 
+            // socialLabel
+            // 
+            this.socialLabel.AutoSize = true;
+            this.socialLabel.Location = new System.Drawing.Point(151, 43);
+            this.socialLabel.Name = "socialLabel";
+            this.socialLabel.Size = new System.Drawing.Size(96, 16);
+            this.socialLabel.TabIndex = 19;
+            this.socialLabel.Text = "Social strategy";
+            // 
+            // seedComboBox
+            // 
+            this.seedComboBox.DisplayMember = "Domain";
+            this.seedComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.seedComboBox.FormattingEnabled = true;
+            this.seedComboBox.Items.AddRange(new object[] {
+            "Domain",
+            "Dataset",
+            "K-Means"});
+            this.seedComboBox.Location = new System.Drawing.Point(8, 62);
+            this.seedComboBox.Name = "seedComboBox";
+            this.seedComboBox.Size = new System.Drawing.Size(115, 24);
+            this.seedComboBox.TabIndex = 20;
+            // 
+            // socialComboBox
+            // 
+            this.socialComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.socialComboBox.FormattingEnabled = true;
+            this.socialComboBox.Items.AddRange(new object[] {
+            "gbest",
+            "lbest - Social",
+            "lbest - Geographic"});
+            this.socialComboBox.Location = new System.Drawing.Point(140, 62);
+            this.socialComboBox.Name = "socialComboBox";
+            this.socialComboBox.Size = new System.Drawing.Size(115, 24);
+            this.socialComboBox.TabIndex = 21;
+            this.socialComboBox.SelectedIndexChanged += new System.EventHandler(this.socialComboBox_SelectedIndexChanged);
+            // 
             // PsoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1296, 644);
+            this.Controls.Add(this.socialComboBox);
+            this.Controls.Add(this.seedComboBox);
+            this.Controls.Add(this.socialLabel);
+            this.Controls.Add(this.seedLabel);
             this.Controls.Add(this.observableCheckBox);
             this.Controls.Add(this.openFileButton);
             this.Controls.Add(this.iterationsNumericLabel);
@@ -260,6 +314,10 @@
         private System.Windows.Forms.Label iterationsNumericLabel;
         private System.Windows.Forms.Button openFileButton;
         private System.Windows.Forms.CheckBox observableCheckBox;
+        private System.Windows.Forms.Label seedLabel;
+        private System.Windows.Forms.Label socialLabel;
+        private System.Windows.Forms.ComboBox seedComboBox;
+        private System.Windows.Forms.ComboBox socialComboBox;
     }
 }
 

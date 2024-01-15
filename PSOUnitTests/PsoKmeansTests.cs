@@ -1,10 +1,8 @@
-﻿using KMeans;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PSOImageSegmentation;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PSOClusteringAlgorithm;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 
 namespace PSOUnitTests
@@ -12,407 +10,321 @@ namespace PSOUnitTests
     [TestClass]
     public class PsoKmeansTests
     {
-        [TestMethod]
-        [DataRow(4)]
-        [DataRow(8)]
-        [DataRow(12)]
-        public void TestToji(int numberOfClusters)
+        private const int NumberOfParticles = 10;
+        private const int NumberOfClusters = 8;
+        private const int NumberOfIterations = 10;
+        private const int Repetitions = 15;
+
+        public static IEnumerable<object[]> StrategyCombinations
         {
-            //Arrange
-            var image = new Bitmap(Image.FromFile("./toji.jpg"));
-            image = PSOimage.MakeGrayscale3(image);
-            var dataPoints = new List<DataVec>();
-            for (var x = 0; x < image.Width; ++x)
+            get
             {
-                for (var y = 0; y < image.Height; ++y)
+                return new[]
                 {
-                    var pixel = image.GetPixel(x, y);
-                    dataPoints.Add(new DataVec(new double[] { x, y, pixel.R, pixel.G, pixel.B }));
-                }
+                    new object[] { 0, 0 },
+                    new object[] { 0, 1 },
+                    new object[] { 0, 2 },
+                    new object[] { 1, 0 },
+                    new object[] { 1, 1 },
+                    new object[] { 1, 2 },
+                    new object[] { 2, 0 },
+                    new object[] { 2, 1 },
+                    new object[] { 2, 2 },
+                };
             }
-
-            var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters, 10, 20);
-            pso.GenerateDataSetFromBitmap(image);
-
-            //Act
-            var clusters = kmeans.Compute();
-            //convert Kmeans clusters
-            var centroidList = new List<PSOimage.Point>();
-            var clusterList = new List<List<PSOimage.Point>>();
-            foreach (var cluster in clusters)
-            {
-                centroidList.Add(new PSOimage.Point
-                {
-                    vec = cluster.Centroid.Components
-                });
-                clusterList.Add(cluster.Points.Select(x => new PSOimage.Point { vec = x.Components }).ToList());
-            }
-
-
-            var (psoImage, psoScore) = pso.RunPSO();
-            var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
-
-            //write image
-            var kmeanImage = new Bitmap(image.Width, image.Height);
-            foreach (var cluster in clusters)
-            {
-                foreach (var clusterPoint in cluster.Points)
-                {
-                    kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0],
-                        (int)clusterPoint.Components[1],
-                        Color.FromArgb(
-                            (int)cluster.Centroid.Components[2],
-                            (int)cluster.Centroid.Components[3],
-                            (int)cluster.Centroid.Components[4]
-                            ));
-                }
-            }
-            System.IO.Directory.CreateDirectory("./TestResults/Toji");
-            kmeanImage.Save($"./TestResults/Toji/KmeanToji{numberOfClusters}.png", ImageFormat.Png);
-            psoImage.Save($"./TestResults/Toji/PSOToji{numberOfClusters}.png", ImageFormat.Png);
-
-            //Assert
-            Assert.IsTrue(psoScore <= kmeanScore, $"PSO worse than Kmean : {psoScore} > {kmeanScore}");
-            Console.WriteLine($"KmeanScore: {kmeanScore}");
-            Console.WriteLine($"PsoScore: {psoScore}");
         }
 
         [TestMethod]
-        [DataRow(4)]
-        [DataRow(8)]
-        [DataRow(12)]
-        public void TestLennaGray(int numberOfClusters)
+        [DynamicData(nameof(StrategyCombinations))]
+        public void TestToji(int seedStrategy, int socialStrategy)
+        {
+            var image = new Bitmap(Image.FromFile("./toji.jpg"));
+            var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
+
+            pso.GenerateDataSetFromBitmap(image);
+
+            switch (seedStrategy)
+            {
+                case 0:
+                    pso.CentroidSpawner = new SpawnInDomainValues(pso.PointDimensions, pso.DomainLimits);
+                    break;
+                case 2:
+                    pso.CentroidSpawner = new SpawnWithKMeansSeed(pso.DataSet, pso.tmax);
+                    break;
+                default:
+                    pso.CentroidSpawner = new SpawnInDatasetValues(pso.DataSet);
+                    break;
+            }
+
+            switch (socialStrategy)
+            {
+                case 1:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 3);
+                    break;
+                case 2:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Geographic, 3);
+                    break;
+                default:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 0);
+                    break;
+            }
+
+            var scores = Enumerable.Range(0, Repetitions).Select(index =>
+            {
+                var cost = pso.RunPSO().Cost;
+                Console.WriteLine($"Particula {index}: {cost}");
+                return cost;
+            });
+
+            var average = scores.Average();
+            var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
+
+            Console.WriteLine($"Average: {average}");
+            Console.WriteLine($"Standard Deviation: {standardDeviation}");
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(StrategyCombinations))]
+        public void TestLennaGray(int seedStrategy, int socialStrategy)
         {
             //Arrange
             var image = new Bitmap(Image.FromFile("./Lenna_Gray.png"));
-            var dataPoints = new List<DataVec>();
-            for (var x = 0; x < image.Width; ++x)
-            {
-                for (var y = 0; y < image.Height; ++y)
-                {
-                    var pixel = image.GetPixel(x, y);
-                    dataPoints.Add(new DataVec(new double[] { x, y, pixel.R, pixel.G, pixel.B }));
-                }
-            }
+            var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
-            var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
-            //Act
-            var clusters = kmeans.Compute();
-            //convert Kmeans clusters
-            var centroidList = new List<PSOimage.Point>();
-            var clusterList = new List<List<PSOimage.Point>>();
-            foreach (var cluster in clusters)
+            switch (seedStrategy)
             {
-                centroidList.Add(new PSOimage.Point
-                {
-                    vec = cluster.Centroid.Components
-                });
-                clusterList.Add(cluster.Points.Select(x => new PSOimage.Point { vec = x.Components }).ToList());
+                case 0:
+                    pso.CentroidSpawner = new SpawnInDomainValues(pso.PointDimensions, pso.DomainLimits);
+                    break;
+                case 2:
+                    pso.CentroidSpawner = new SpawnWithKMeansSeed(pso.DataSet, pso.tmax);
+                    break;
+                default:
+                    pso.CentroidSpawner = new SpawnInDatasetValues(pso.DataSet);
+                    break;
             }
 
-
-            var (psoImage, psoScore) = pso.RunPSO();
-            var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
-
-            //write image
-            var kmeanImage = new Bitmap(image.Width, image.Height);
-            foreach (var cluster in clusters)
+            switch (socialStrategy)
             {
-                foreach (var clusterPoint in cluster.Points)
-                {
-                    kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0],
-                        (int)clusterPoint.Components[1],
-                        Color.FromArgb(
-                            (int)cluster.Centroid.Components[2],
-                            (int)cluster.Centroid.Components[3],
-                            (int)cluster.Centroid.Components[4]
-                            ));
-                }
+                case 1:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 3);
+                    break;
+                case 2:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Geographic, 3);
+                    break;
+                default:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 0);
+                    break;
             }
-            System.IO.Directory.CreateDirectory("./TestResults/Lenna_Gray");
-            kmeanImage.Save($"./TestResults/Lenna_Gray/KmeanLenna{numberOfClusters}.png", ImageFormat.Png);
-            psoImage.Save($"./TestResults/Lenna_Gray/PsoLenna{numberOfClusters}.png", ImageFormat.Png);
 
-            //Assert
-            Assert.IsTrue(psoScore <= kmeanScore, $"PSO worse than Kmean : {psoScore} > {kmeanScore}");
-            Console.WriteLine($"KmeanScore: {kmeanScore}");
-            Console.WriteLine($"PsoScore: {psoScore}");
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+
+            var average = scores.Average();
+            var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
+
+            Console.WriteLine($"Average: {average}");
+            Console.WriteLine($"Standard Deviation: {standardDeviation}");
         }
 
+
         [TestMethod]
-        [DataRow(4)]
-        [DataRow(8)]
-        [DataRow(12)]
-        public void TestLennaColor(int numberOfClusters)
+        [DynamicData(nameof(StrategyCombinations))]
+        public void TestLennaColor(int seedStrategy, int socialStrategy)
         {
             //Arrange
             var image = new Bitmap(Image.FromFile("./Lenna_Color.png"));
-            var dataPoints = new List<DataVec>();
-            for (var x = 0; x < image.Width; ++x)
-            {
-                for (var y = 0; y < image.Height; ++y)
-                {
-                    var pixel = image.GetPixel(x, y);
-                    dataPoints.Add(new DataVec(new double[] { x, y, pixel.R, pixel.G, pixel.B }));
-                }
-            }
+            var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
-            var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
-            //Act
-            var clusters = kmeans.Compute();
-            //convert Kmeans clusters
-            var centroidList = new List<PSOimage.Point>();
-            var clusterList = new List<List<PSOimage.Point>>();
-            foreach (var cluster in clusters)
+            switch (seedStrategy)
             {
-                centroidList.Add(new PSOimage.Point
-                {
-                    vec = cluster.Centroid.Components
-                });
-                clusterList.Add(cluster.Points.Select(x => new PSOimage.Point { vec = x.Components }).ToList());
+                case 0:
+                    pso.CentroidSpawner = new SpawnInDomainValues(pso.PointDimensions, pso.DomainLimits);
+                    break;
+                case 2:
+                    pso.CentroidSpawner = new SpawnWithKMeansSeed(pso.DataSet, pso.tmax);
+                    break;
+                default:
+                    pso.CentroidSpawner = new SpawnInDatasetValues(pso.DataSet);
+                    break;
             }
 
-
-            var (psoImage, psoScore) = pso.RunPSO();
-            var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
-
-            //write image
-            var kmeanImage = new Bitmap(image.Width, image.Height);
-            foreach (var cluster in clusters)
+            switch (socialStrategy)
             {
-                foreach (var clusterPoint in cluster.Points)
-                {
-                    kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0],
-                        (int)clusterPoint.Components[1],
-                        Color.FromArgb(
-                            (int)cluster.Centroid.Components[2],
-                            (int)cluster.Centroid.Components[3],
-                            (int)cluster.Centroid.Components[4]
-                            ));
-                }
+                case 1:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 3);
+                    break;
+                case 2:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Geographic, 3);
+                    break;
+                default:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 0);
+                    break;
             }
-            System.IO.Directory.CreateDirectory("./TestResults/Lenna_Color");
-            kmeanImage.Save($"./TestResults/Lenna_Color/KmeanLenna{numberOfClusters}.png", ImageFormat.Png);
-            psoImage.Save($"./TestResults/Lenna_Color/PsoLenna{numberOfClusters}.png", ImageFormat.Png);
 
-            //Assert
-            Assert.IsTrue(psoScore <= kmeanScore, $"PSO worse than Kmean : {psoScore} > {kmeanScore}");
-            Console.WriteLine($"KmeanScore: {kmeanScore}");
-            Console.WriteLine($"PsoScore: {psoScore}");
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+
+            var average = scores.Average();
+            var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
+
+            Console.WriteLine($"Average: {average}");
+            Console.WriteLine($"Standard Deviation: {standardDeviation}");
         }
 
+
         [TestMethod]
-        [DataRow(4)]
-        [DataRow(8)]
-        [DataRow(12)]
-        public void TestPeppers(int numberOfClusters)
+        [DynamicData(nameof(StrategyCombinations))]
+        public void TestPeppers(int seedStrategy, int socialStrategy)
         {
             //Arrange
             var image = new Bitmap(Image.FromFile("./Peppers_Color.jpg"));
-            var dataPoints = new List<DataVec>();
-            for (var x = 0; x < image.Width; ++x)
-            {
-                for (var y = 0; y < image.Height; ++y)
-                {
-                    var pixel = image.GetPixel(x, y);
-                    dataPoints.Add(new DataVec(new double[] { x, y, pixel.R, pixel.G, pixel.B }));
-                }
-            }
+            var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
-            var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
-            //Act
-            var clusters = kmeans.Compute();
-            //convert Kmeans clusters
-            var centroidList = new List<PSOimage.Point>();
-            var clusterList = new List<List<PSOimage.Point>>();
-            foreach (var cluster in clusters)
+            switch (seedStrategy)
             {
-                centroidList.Add(new PSOimage.Point
-                {
-                    vec = cluster.Centroid.Components
-                });
-                clusterList.Add(cluster.Points.Select(x => new PSOimage.Point { vec = x.Components }).ToList());
+                case 0:
+                    pso.CentroidSpawner = new SpawnInDomainValues(pso.PointDimensions, pso.DomainLimits);
+                    break;
+                case 2:
+                    pso.CentroidSpawner = new SpawnWithKMeansSeed(pso.DataSet, pso.tmax);
+                    break;
+                default:
+                    pso.CentroidSpawner = new SpawnInDatasetValues(pso.DataSet);
+                    break;
             }
 
-
-            var (psoImage, psoScore) = pso.RunPSO();
-            var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
-
-            //write image
-            var kmeanImage = new Bitmap(image.Width, image.Height);
-            foreach (var cluster in clusters)
+            switch (socialStrategy)
             {
-                foreach (var clusterPoint in cluster.Points)
+                case 1:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 3);
+                    break;
+                case 2:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Geographic, 3);
+                    break;
+                default:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 0);
+                    break;
+            }
+
+            var scores = new List<double>();
+            foreach (var index in Enumerable.Range(0, Repetitions))
+            {
+                var particle = pso.RunPSO();
+                Console.WriteLine($"Particula {index}: {particle.Cost}");
+                foreach (var VARIABLE in particle.Centroids)
                 {
-                    kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0],
-                        (int)clusterPoint.Components[1],
-                        Color.FromArgb(
-                            (int)cluster.Centroid.Components[2],
-                            (int)cluster.Centroid.Components[3],
-                            (int)cluster.Centroid.Components[4]
-                            ));
+                    foreach (var d in VARIABLE.vec)
+                    {
+                        Console.Write($"{d} ");
+                    }
+
+                    Console.WriteLine();
                 }
+                scores.Add(particle.Cost);
             }
-            System.IO.Directory.CreateDirectory("./TestResults/Peppers");
-            kmeanImage.Save($"./TestResults/Peppers/KmeanPeppers{numberOfClusters}.png", ImageFormat.Png);
-            psoImage.Save($"./TestResults/Peppers/PsoPeppers{numberOfClusters}.png", ImageFormat.Png);
 
-            //Assert
-            Assert.IsTrue(psoScore <= kmeanScore, $"PSO worse than Kmean : {psoScore} > {kmeanScore}");
-            Console.WriteLine($"KmeanScore: {kmeanScore}");
-            Console.WriteLine($"PsoScore: {psoScore}");
+            var average = scores.Average();
+            var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
+
+            Console.WriteLine($"Average: {average}");
+            Console.WriteLine($"Standard Deviation: {standardDeviation}");
         }
 
+
         [TestMethod]
-        [DataRow(4)]
-        [DataRow(8)]
-        [DataRow(12)]
-        [DataRow(16)]
-        public void TestImportant(int numberOfClusters)
+        [DynamicData(nameof(StrategyCombinations))]
+        public void TestImportant(int seedStrategy, int socialStrategy)
         {
             //Arrange
             var image = new Bitmap(Image.FromFile("./Important_Color.jpg"));
-            //image = PSOimage.MakeGrayscale3(image);
-            var dataPoints = new List<DataVec>();
-            for (var x = 0; x < image.Width; ++x)
-            {
-                for (var y = 0; y < image.Height; ++y)
-                {
-                    var pixel = image.GetPixel(x, y);
-                    dataPoints.Add(new DataVec(new double[] { x, y, pixel.R, pixel.G, pixel.B }));
-                }
-            }
+            var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
-            var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
-            //Act
-            var clusters = kmeans.Compute();
-            //convert Kmeans clusters
-            var centroidList = new List<PSOimage.Point>();
-            var clusterList = new List<List<PSOimage.Point>>();
-            foreach (var cluster in clusters)
+            switch (seedStrategy)
             {
-                centroidList.Add(new PSOimage.Point
-                {
-                    vec = cluster.Centroid.Components
-                });
-                clusterList.Add(cluster.Points.Select(x => new PSOimage.Point { vec = x.Components }).ToList());
+                case 0:
+                    pso.CentroidSpawner = new SpawnInDomainValues(pso.PointDimensions, pso.DomainLimits);
+                    break;
+                case 2:
+                    pso.CentroidSpawner = new SpawnWithKMeansSeed(pso.DataSet, pso.tmax);
+                    break;
+                default:
+                    pso.CentroidSpawner = new SpawnInDatasetValues(pso.DataSet);
+                    break;
             }
 
-
-            var (psoImage, psoScore) = pso.RunPSO();
-            var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
-
-            //write image
-            var kmeanImage = new Bitmap(image.Width, image.Height);
-            foreach (var cluster in clusters)
+            switch (socialStrategy)
             {
-                foreach (var clusterPoint in cluster.Points)
-                {
-                    kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0],
-                        (int)clusterPoint.Components[1],
-                        Color.FromArgb(
-                            (int)cluster.Centroid.Components[2],
-                            (int)cluster.Centroid.Components[3],
-                            (int)cluster.Centroid.Components[4]
-                            ));
-                }
+                case 1:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 3);
+                    break;
+                case 2:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Geographic, 3);
+                    break;
+                default:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 0);
+                    break;
             }
-            System.IO.Directory.CreateDirectory("./TestResults/Important");
-            kmeanImage.Save($"./TestResults/Important/KmeanImportant{numberOfClusters}.png", ImageFormat.Png);
-            psoImage.Save($"./TestResults/Important/PSOImportant{numberOfClusters}.png", ImageFormat.Png);
 
-            //Assert
-            Assert.IsTrue(psoScore <= kmeanScore, $"PSO worse than Kmean : {psoScore} > {kmeanScore}");
-            Console.WriteLine($"KmeanScore: {kmeanScore}");
-            Console.WriteLine($"PsoScore: {psoScore}");
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+
+            var average = scores.Average();
+            var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
+
+            Console.WriteLine($"Average: {average}");
+            Console.WriteLine($"Standard Deviation: {standardDeviation}");
         }
 
 
         [TestMethod]
-        [DataRow(4)]
-        [DataRow(8)]
-        [DataRow(12)]
-        [DataRow(16)]
-        [DataRow(20)]
-        public void TestStroheim(int numberOfClusters)
+        [DynamicData(nameof(StrategyCombinations))]
+        public void TestStroheim(int seedStrategy, int socialStrategy)
         {
             //Arrange
             var image = new Bitmap(Image.FromFile("./Stroheim_Color.png"));
-            //image = PSOimage.MakeGrayscale3(image);
-            var dataPoints = new List<DataVec>();
-            for (var x = 0; x < image.Width; ++x)
-            {
-                for (var y = 0; y < image.Height; ++y)
-                {
-                    var pixel = image.GetPixel(x, y);
-                    dataPoints.Add(new DataVec(new double[] { x, y, pixel.R, pixel.G, pixel.B }));
-                }
-            }
+            var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
-            var kmeans = new KMeansClustering(dataPoints.ToArray(), numberOfClusters);
-            var pso = new PSOimage(numberOfClusters, 10, 20);
             pso.GenerateDataSetFromBitmap(image);
 
-            //Act
-            var clusters = kmeans.Compute();
-            //convert Kmeans clusters
-            var centroidList = new List<PSOimage.Point>();
-            var clusterList = new List<List<PSOimage.Point>>();
-            foreach (var cluster in clusters)
+            switch (seedStrategy)
             {
-                centroidList.Add(new PSOimage.Point
-                {
-                    vec = cluster.Centroid.Components
-                });
-                clusterList.Add(cluster.Points.Select(x => new PSOimage.Point { vec = x.Components }).ToList());
+                case 0:
+                    pso.CentroidSpawner = new SpawnInDomainValues(pso.PointDimensions, pso.DomainLimits);
+                    break;
+                case 2:
+                    pso.CentroidSpawner = new SpawnWithKMeansSeed(pso.DataSet, pso.tmax);
+                    break;
+                default:
+                    pso.CentroidSpawner = new SpawnInDatasetValues(pso.DataSet);
+                    break;
             }
 
-
-            var (psoImage, psoScore) = pso.RunPSO();
-            var kmeanScore = PSOimage.FitnessFunction(centroidList, clusterList);
-
-            //write image
-            var kmeanImage = new Bitmap(image.Width, image.Height);
-            foreach (var cluster in clusters)
+            switch (socialStrategy)
             {
-                foreach (var clusterPoint in cluster.Points)
-                {
-                    kmeanImage.SetPixel(
-                        (int)clusterPoint.Components[0],
-                        (int)clusterPoint.Components[1],
-                        Color.FromArgb(
-                            (int)cluster.Centroid.Components[2],
-                            (int)cluster.Centroid.Components[3],
-                            (int)cluster.Centroid.Components[4]
-                            ));
-                }
+                case 1:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 3);
+                    break;
+                case 2:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Geographic, 3);
+                    break;
+                default:
+                    (pso.VicinityType, pso.VicinitySize) = (SbestType.Social, 0);
+                    break;
             }
-            System.IO.Directory.CreateDirectory("./TestResults/Stroheim");
-            kmeanImage.Save($"./TestResults/Stroheim/KmeanStroheim{numberOfClusters}.png", ImageFormat.Png);
-            psoImage.Save($"./TestResults/Stroheim/PSOStroheim{numberOfClusters}.png", ImageFormat.Png);
 
-            //Assert
-            Assert.IsTrue(psoScore <= kmeanScore, $"PSO worse than Kmean : {psoScore} > {kmeanScore}");
-            Console.WriteLine($"KmeanScore: {kmeanScore}");
-            Console.WriteLine($"PsoScore: {psoScore}");
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+
+            var average = scores.Average();
+            var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
+
+            Console.WriteLine($"Average: {average}");
+            Console.WriteLine($"Standard Deviation: {standardDeviation}");
         }
     }
 }

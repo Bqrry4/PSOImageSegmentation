@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PSOClusteringAlgorithm
 {
@@ -65,7 +63,10 @@ namespace PSOClusteringAlgorithm
         public static double Dmax(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
         {
             return centroids
-                .Select((centroid, k) => clusters.ElementAt(k).Sum(point => EuclidianDistance(point.vec, centroid.vec)) / clusters.ElementAt(k).Count())
+                .Select((centroid, k) => 
+                    clusters.ElementAt(k).Sum(point => 
+                        EuclidianDistance(point.vec, centroid.vec)
+                        ) / clusters.ElementAt(k).Count())
                 .Max();
         }
         /// <summary>

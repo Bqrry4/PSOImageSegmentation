@@ -6,7 +6,6 @@ using System.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Point = System.Drawing.Point;
 
 namespace Interface
 {
@@ -26,45 +25,38 @@ namespace Interface
         private Bitmap _image;
         private PSOImageSegmentation _pso;
 
-        private int numberOfParticles = 10;
-        private int numberOfClusters = 8;
-        private int numberOfIterations = 10;
-
-        public static Bitmap MakeGrayscale2(Bitmap original)
-        {
-            int x, y;
-
-            // Loop through the images pixels to reset color.
-            for (x = 0; x < original.Width; x++)
-            {
-                for (y = 0; y < original.Height; y++)
-                {
-                    Color pixelColor = original.GetPixel(x, y);
-                    Color newColor = Color.FromArgb(pixelColor.R, 0, 0);
-                    original.SetPixel(x, y, newColor); // Now greyscale
-                }
-            }
-
-            return original;
-        }
+        private int _numberOfParticles = 10;
+        private int _numberOfClusters = 8;
+        private int _numberOfIterations = 10;
+        private (SbestType type, int size) _socialStrategy = (SbestType.Social, 0);
 
         private async void startButton_Click(object sender, EventArgs e)
         {
-            _pso = new PSOImageSegmentation(numberOfClusters, numberOfParticles, numberOfIterations);
+            _pso = new PSOImageSegmentation(_numberOfClusters, _numberOfParticles, _numberOfIterations);
             _pso.GenerateDataSetFromBitmap(_image);
 
             /*Set the strategy*/
-            _pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
-            //_pso.CentroidSpawner = new SpawnWithKMeansSeed(_pso.DataSet, _pso.tmax);
+            switch (seedComboBox.SelectedIndex)
+            {
+                case 0:
+                    _pso.CentroidSpawner = new SpawnInDomainValues(_pso.PointDimensions, _pso.DomainLimits);
+                    break;
+                case 2:
+                    _pso.CentroidSpawner = new SpawnWithKMeansSeed(_pso.DataSet, _pso.tmax);
+                    break;
+                default:
+                    _pso.CentroidSpawner = new SpawnInDatasetValues(_pso.DataSet);
+                    break;
+            }
 
             /*Set the version of algorithm*/
-            _pso.VicinityType = SbestType.Geographic;
-            _pso.VicinitySize = 4;
+            _pso.VicinityType = _socialStrategy.type;
+            _pso.VicinitySize = _socialStrategy.size;
 
             particlePanel.Controls.Clear();
             if (observableCheckBox.Checked)
             {
-                _particleViews = Enumerable.Range(0, numberOfParticles)
+                _particleViews = Enumerable.Range(0, _numberOfParticles)
                     .Select(i => new PictureBox
                     {
                         Height = 80,
@@ -75,7 +67,7 @@ namespace Interface
 
                 particlePanel.Controls.AddRange(_particleViews);
 
-                var particles = Enumerable.Range(0, numberOfParticles).Select(index => new ParticleObservable(index)).ToArray();
+                var particles = Enumerable.Range(0, _numberOfParticles).Select(index => new ParticleObservable(index)).ToArray();
 
                 foreach (var particleObservable in particles)
                 {
@@ -84,29 +76,25 @@ namespace Interface
 
                 _pso.Particles = particles;
             }
-/*            else
-            {
-                _pso.instanciateParticles();
-            }*/
 
-            var image = await Task.Run(() => _pso.RunPSO());
+            var image = await Task.Run(() => _pso.RunImagePSO());
 
             resultPictureBox.Image = image;
         }
 
         private void clustersNumeric_ValueChanged(object sender, EventArgs e)
         {
-            numberOfClusters = (int)clustersNumeric.Value;
+            _numberOfClusters = (int)clustersNumeric.Value;
         }
 
         private void particleNumeric_ValueChanged(object sender, EventArgs e)
         {
-            numberOfParticles = (int)particleNumeric.Value;
+            _numberOfParticles = (int)particleNumeric.Value;
         }
 
         private void iterationsNumeric_ValueChanged(object sender, EventArgs e)
         {
-            numberOfIterations = (int)iterationsNumeric.Value;
+            _numberOfIterations = (int)iterationsNumeric.Value;
         }
 
         private void openFileButton_Click(object sender, EventArgs e)
@@ -139,6 +127,22 @@ namespace Interface
 
         public void OnCompleted()
         {
+        }
+
+        private void socialComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (socialComboBox.SelectedIndex)
+            {
+                case 1:
+                    _socialStrategy = (SbestType.Social, 3);
+                    break;
+                case 2:
+                    _socialStrategy = (SbestType.Geographic, 3);
+                    break;
+                default:
+                    _socialStrategy = (SbestType.Social, 0);
+                    break;
+            }
         }
     }
 }
