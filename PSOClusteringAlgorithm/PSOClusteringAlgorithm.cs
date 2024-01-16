@@ -196,12 +196,12 @@ namespace PSOClusteringAlgorithm
             });
 
 
-            //social best
-            IParticle sbest = null;
-            //if GBest is choosen
+            //social global best
+            IParticle gbest = null;
+            //if GBest is choosen -> init
             if (VicinitySize == 0)
             {
-                sbest = Particles.Aggregate((min, current) => min.Cost < current.Cost ? min : current).Clone();
+                gbest = Particles.Aggregate((min, current) => min.Cost < current.Cost ? min : current).Clone();
             }
 
             //needed for the random factor
@@ -211,14 +211,20 @@ namespace PSOClusteringAlgorithm
 
             for (int t = 0; t < tmax; t++)
             {
-
                 //needed to check convergency
                 int particlesStillMoving = 0;
                 //foreach (var particle in Particles)
                 Parallel.ForEach(Particles, (particle, state, particleIndex) =>
                 {
+
+                    //social best
+                    IParticle sbest;
                     //find best in particle's vicinity
-                    if (VicinitySize != 0)
+                    if (gbest != null)
+                    {
+                        sbest = gbest;
+                    }
+                    else //search in vicinity
                     {
                         mux.WaitOne();
                         sbest = GetBestInParticleVicinity((int)particleIndex);
@@ -272,11 +278,11 @@ namespace PSOClusteringAlgorithm
                         //updating right away when gbest
                         if (VicinitySize == 0)
                         {
-                            //updating sbest
+                            //updating gbest
                             mux.WaitOne();
-                            if (particle.Cost < sbest.Cost)
+                            if (particle.Cost < gbest.Cost)
                             {
-                                sbest = particle.Clone();
+                                gbest = particle.Clone();
                             }
                             mux.ReleaseMutex();
                         }
@@ -289,8 +295,13 @@ namespace PSOClusteringAlgorithm
                     break;
                 }
             }
-            //solution is sbest
-            return sbest;
+
+            return VicinitySize == 0 ?
+                //solution is gbest
+                gbest :
+                //solution is the best particle in swarm
+                Particles.Aggregate((min, current) => min.Cost < current.Cost ? min : current).Clone();
+
         }
 
     }
