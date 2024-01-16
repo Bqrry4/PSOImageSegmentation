@@ -49,9 +49,12 @@ namespace PSOClusteringAlgorithm
             double summ = 0;
             for (int k = 0; k < clusters.Count(); ++k)
             {
-                summ += clusters.ElementAt(k)
-                    .Sum(pattern => EuclidianDistance(pattern.vec, centroids.ElementAt(k).vec))
-                    / clusters.ElementAt(k).Count();
+                if (clusters.ElementAt(k).Any())
+                {
+                    summ += clusters.ElementAt(k)
+                                .Sum(pattern => EuclidianDistance(pattern.vec, centroids.ElementAt(k).vec))
+                            / clusters.ElementAt(k).Count();
+                }
             }
             return summ / clusters.Count();
         }
@@ -63,10 +66,7 @@ namespace PSOClusteringAlgorithm
         public static double Dmax(IEnumerable<Point> centroids, IEnumerable<IEnumerable<Point>> clusters)
         {
             return centroids
-                .Select((centroid, k) => 
-                    clusters.ElementAt(k).Sum(point => 
-                        EuclidianDistance(point.vec, centroid.vec)
-                        ) / clusters.ElementAt(k).Count())
+                .Select((centroid, k) => clusters.ElementAt(k).Sum(point => EuclidianDistance(point.vec, centroid.vec)) / clusters.ElementAt(k).Count())
                 .Max();
         }
         /// <summary>

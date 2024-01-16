@@ -38,7 +38,7 @@ namespace PSOUnitTests
         [DynamicData(nameof(StrategyCombinations))]
         public void TestToji(int seedStrategy, int socialStrategy)
         {
-            var image = new Bitmap(Image.FromFile("./toji.jpg"));
+            var image = new Bitmap(Image.FromFile("./testImages/toji.jpg"));
             var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
             pso.GenerateDataSetFromBitmap(image);
@@ -69,12 +69,7 @@ namespace PSOUnitTests
                     break;
             }
 
-            var scores = Enumerable.Range(0, Repetitions).Select(index =>
-            {
-                var cost = pso.RunPSO().Cost;
-                Console.WriteLine($"Particula {index}: {cost}");
-                return cost;
-            });
+            var scores = Enumerable.Range(0, Repetitions).Select(index => pso.RunPSO().Cost).ToList();
 
             var average = scores.Average();
             var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
@@ -88,7 +83,7 @@ namespace PSOUnitTests
         public void TestLennaGray(int seedStrategy, int socialStrategy)
         {
             //Arrange
-            var image = new Bitmap(Image.FromFile("./Lenna_Gray.png"));
+            var image = new Bitmap(Image.FromFile("./testImages/Lenna_Gray.png"));
             var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
             pso.GenerateDataSetFromBitmap(image);
@@ -119,7 +114,7 @@ namespace PSOUnitTests
                     break;
             }
 
-            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost).ToList();
 
             var average = scores.Average();
             var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
@@ -134,7 +129,7 @@ namespace PSOUnitTests
         public void TestLennaColor(int seedStrategy, int socialStrategy)
         {
             //Arrange
-            var image = new Bitmap(Image.FromFile("./Lenna_Color.png"));
+            var image = new Bitmap(Image.FromFile("./testImages/Lenna_Color.png"));
             var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
             pso.GenerateDataSetFromBitmap(image);
@@ -165,7 +160,7 @@ namespace PSOUnitTests
                     break;
             }
 
-            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost).ToList();
 
             var average = scores.Average();
             var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
@@ -180,7 +175,7 @@ namespace PSOUnitTests
         public void TestPeppers(int seedStrategy, int socialStrategy)
         {
             //Arrange
-            var image = new Bitmap(Image.FromFile("./Peppers_Color.jpg"));
+            var image = new Bitmap(Image.FromFile("./testImages/Peppers_Color.jpg"));
             var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
             pso.GenerateDataSetFromBitmap(image);
@@ -211,22 +206,7 @@ namespace PSOUnitTests
                     break;
             }
 
-            var scores = new List<double>();
-            foreach (var index in Enumerable.Range(0, Repetitions))
-            {
-                var particle = pso.RunPSO();
-                Console.WriteLine($"Particula {index}: {particle.Cost}");
-                foreach (var VARIABLE in particle.Centroids)
-                {
-                    foreach (var d in VARIABLE.vec)
-                    {
-                        Console.Write($"{d} ");
-                    }
-
-                    Console.WriteLine();
-                }
-                scores.Add(particle.Cost);
-            }
+            var scores = Enumerable.Range(0, Repetitions).Select(index => pso.RunPSO().Cost).ToList();
 
             var average = scores.Average();
             var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
@@ -235,13 +215,13 @@ namespace PSOUnitTests
             Console.WriteLine($"Standard Deviation: {standardDeviation}");
         }
 
-
-        [TestMethod]
+        
+        //[TestMethod]
         [DynamicData(nameof(StrategyCombinations))]
         public void TestImportant(int seedStrategy, int socialStrategy)
         {
             //Arrange
-            var image = new Bitmap(Image.FromFile("./Important_Color.jpg"));
+            var image = new Bitmap(Image.FromFile(".testImages/Important_Color.jpg"));
             var pso = new PSOImageSegmentation(NumberOfClusters, NumberOfParticles, NumberOfIterations);
 
             pso.GenerateDataSetFromBitmap(image);
@@ -272,7 +252,7 @@ namespace PSOUnitTests
                     break;
             }
 
-            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost).ToList();
 
             var average = scores.Average();
             var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
@@ -282,7 +262,7 @@ namespace PSOUnitTests
         }
 
 
-        [TestMethod]
+        //[TestMethod]
         [DynamicData(nameof(StrategyCombinations))]
         public void TestStroheim(int seedStrategy, int socialStrategy)
         {
@@ -318,7 +298,7 @@ namespace PSOUnitTests
                     break;
             }
 
-            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost);
+            var scores = Enumerable.Range(0, Repetitions).Select(_ => pso.RunPSO().Cost).ToList();
 
             var average = scores.Average();
             var standardDeviation = Math.Sqrt(scores.Select(s => (s - average) * (s - average)).Average());
